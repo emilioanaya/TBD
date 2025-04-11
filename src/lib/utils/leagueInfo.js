@@ -11,9 +11,9 @@ export const homepageText = `
   <p>In its inaugural season, Los Azules (formerly My Diggs Small), led by an unimaginable wide receiver room of CeeDee Lamb, Justin Jefferson and Davante Adams, stunned the league by storming from a 6-8 regular season finish to win it all in the playoffs. The following year, Norcal Seleçáo rose to power, claiming the 2024 championship behind a loaded roster headlined by Trey McBride, Ja'Marr Chase, and rookie Malik Nabers.</p>
   <p>TBD isn’t just about the trophies — it’s about long-term rivalries, blockbuster trades, and a tight-knit community with Portuguese roots and plenty of trash talk. Every offseason move matters, every draft pick counts, and every matchup adds fuel to the fire.</p>
   <p>Whether you're a founding member or a curious onlooker, welcome to TBD — where legends are built, rebuilt, and sometimes tank for picks.</p>
-  <p></p>
+  <p> </p>
   <p>Follow us on Instagram for more updates! @thebigdynasty</p>
-  <p></p>
+  <p> </p>
   <p>Established 2023</p>
 `;
 
