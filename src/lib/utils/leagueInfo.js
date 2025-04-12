@@ -31,7 +31,7 @@ export const managers = [
       "name": "JD",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
       "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "bio": "JD, a proud Rams fan, has brought over the same mindset to his team as LA Rams GM Les Snead, with the motto, "Fuck them picks!" A proud Portagee man with a big nose and an even bigger personality!",
       "photo": "/managers/jd.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "lar", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -146,7 +146,7 @@ export const managers = [
       "name": "Izzy",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
       "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "bio": "The team owner of Piri Piri Pombas brings the Bay Area heat just like his favorite team, the San Francisco 49ers. Going into his third year as commish, Izzy plans to keep all the money in the house and script this year's season to bring himself the gold! Us here at TBD get Roger Goodell vibes but hey he's our baritone playin, beer drinking, sopas eating SOB! Cheers to the commish!",
       "photo": "/managers/izzy.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "sf", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
