@@ -168,7 +168,7 @@ export const managers = [
       "name": "Bolo",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
       "location": "California", // (optional)
-      "bio": "Age 22. Has the same odds of winning a championship this year as the Cowboys do of winning a playoff game. If he's not making beats, he's off doing undisclosed things to his collection of Cowboy jerseys. Being the only Portuguese/Latino member, Bolo continues to break barriers and prove all the doubters wrong... THAT HE KNOWS BALL.",
+      "bio": "Age 22. He has the same odds of winning a championship this year as the Cowboys do of winning a playoff game. If he's not making beats, he's off doing undisclosed things to his collection of Cowboy jerseys. Being the only Portuguese/Latino member, Bolo continues to break barriers and prove all the doubters wrong... THAT HE KNOWS BALL.",
       "photo": "/managers/bolo.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "dal", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -181,7 +181,7 @@ export const managers = [
       "favoritePlayer": 6786, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Rookies", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "After winning the championship in TBD's inagural season (2023), I decided I had no team outside of my core players. That offseason, I decided to tear it all down and aim for the first overall pick this year. It worked perfectly, and I now have the 1.03, and 5 more firsts over the next 3 years. I am looking to continue building around my cornerstones and look to compete soon. Look out TBD, Los Azules is coming for our second chip!",
+      "philosophy": "After winning the championship in TBD's inagural season (2023), I decided I had no team outside of my core players. That offseason, I decided to tear it all down and aim for the first overall pick this year. It worked perfectly, and I now have the 1.03, and 5 more firsts over the next 3 years. I am looking to continue building around my cornerstones and look to compete soon. Look out TBD, Los Azules is coming for our second chip! - Bolo",
       "tradingScale": 9, // 1 - 10
       "preferredContact": "Sleeper", // 'Text', 'WhatsApp', 'Sleeper', 'Email', 'Phone', 'Discord', and 'Carrier Pigeon' are currently supplied in the template
     },
