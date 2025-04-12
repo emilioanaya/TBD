@@ -168,8 +168,7 @@ export const managers = [
       "name": "Bolo",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
       "location": "California", // (optional)
-      "bio": "Age 22
-        <p>Favorite team: Dallas Cowboys</p>",
+      "bio": "Age 22. Has the same odds of winning a championship this year as the Cowboys do of winning a playoff game. If he's not making beats, he's off doing undisclosed things to his collection of Cowboy jerseys. Being the only Portuguese/Latino member, Bolo continues to break barriers and prove all the doubters wrong... THAT HE KNOWS BALL.",
       "photo": "/managers/bolo.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "dal", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
