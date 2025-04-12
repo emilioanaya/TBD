@@ -30,8 +30,8 @@ export const managers = [
       "managerID" : "471758701842132992",
       "name": "JD",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
-      "bio": "JD, a proud Rams fan, has brought over the same mindset to his team as LA Rams GM Les Snead, with the motto, "Fuck them picks!" A proud Portagee man with a big nose and an even bigger personality!",
+      "location": "Tulare, California", // (optional)
+      "bio": "JD, a proud Rams fan, has brought over the same mindset to his team as LA Rams GM Les Snead, with the motto, 'Fuck them picks!' A proud Portagee man with a big nose and an even bigger personality!",
       "photo": "/managers/jd.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "lar", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -145,7 +145,7 @@ export const managers = [
       "managerID" : "733091325091635200",
       "name": "Izzy",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
+      "location": "Oakdale, California", // (optional)
       "bio": "The team owner of Piri Piri Pombas brings the Bay Area heat just like his favorite team, the San Francisco 49ers. Going into his third year as commish, Izzy plans to keep all the money in the house and script this year's season to bring himself the gold! Us here at TBD get Roger Goodell vibes but hey he's our baritone playin, beer drinking, sopas eating SOB! Cheers to the commish!",
       "photo": "/managers/izzy.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
@@ -167,7 +167,7 @@ export const managers = [
       "managerID" : "733139077938925568",
       "name": "Bolo",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
+      "location": "Elk Grove, California", // (optional)
       "bio": "Age 22. He has the same odds of winning a championship this year as the Cowboys do of winning a playoff game. If he's not making beats, he's off doing undisclosed things to his collection of Cowboy jerseys. Being the only Portuguese/Latino member, Bolo continues to break barriers and prove all the doubters wrong... THAT HE KNOWS BALL.",
       "photo": "/managers/bolo.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
