@@ -168,7 +168,8 @@ export const managers = [
       "name": "Bolo",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
       "location": "California", // (optional)
-      "bio": "Age 22",
+      "bio": "Age 22
+        <p>Favorite team: Dallas Cowboys</p>",
       "photo": "/managers/bolo.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "dal", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
