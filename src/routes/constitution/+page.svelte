@@ -5,8 +5,6 @@
     let three, threeOne;
     let four, fourOne, fourTwo;
     let five, fiveOne;
-    let six, sixOne, sixTwo, sixThree;
-    let seven, sevenOne, sevenTwo, sevenThree;
 
     const goToSection = (section) => {
         const top = section.getBoundingClientRect().top + window.pageYOffset;
@@ -115,7 +113,7 @@
     
     <h3 class="noUnderscore clickable" onclick={() => goToSection(three)}>Section 3: Scoring System</h3>
     
-        <h4 class="noUnderscore clickable" onclick={() => goToSection(threeOne)}>3.1 Voting on Scoring System</h4>
+        <h4 class="noUnderscore clickable" onclick={() => goToSection(threeOne)}>3.1 Scoring System</h4>
     
     <h3 class="noUnderscore clickable" onclick={() => goToSection(four)}>Section 4: Postseason</h3>
     
@@ -154,7 +152,19 @@
 
     <p>3 IR Spots (Player must be labeled as IR or Out in the Sleeper App)</p>
     
-       
+        <h4 bind:this={oneOneOne}>1.1.1 Position Maximums</h4>
+        
+        <div class="subBlock">
+            <table class="positionMaximums">
+                <tbody>
+                <tr><td>QB</td><td class="right">3 active, 5 total</td></tr>
+                <tr><td>RB</td><td class="right">20</td></tr>
+                <tr><td>WR</td><td class="right">20</td></tr>
+                <tr><td>TE</td><td class="right">10</td></tr>
+                <tr><td>D/ST</td><td class="right">3</td></tr>
+                <tr><td>K</td><td class="right">3</td></tr>
+                </tbody>
+            </table>
         </div>
 
 
