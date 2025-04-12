@@ -53,8 +53,8 @@ export const managers = [
       "managerID" : "594665552094486528",
       "name": "Grant",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "location": "Manteca, California", // (optional)
+      "bio": "Being the tallest tolo out of the bunch, Grant consistently shoots for the stars with his franchise just like when he stands up out of a chair! After recently locking down his new big boy job, Grant looks to top the year off with a victory in this year's fantasy season.",
       "photo": "/managers/grant.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "lv", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -76,8 +76,8 @@ export const managers = [
       "managerID" : "608428302964686848",
       "name": "Justin",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "Brooklyn", // (optional)
-      "bio": "Lorem ipsum...",
+      "location": "Tulare, California", // (optional)
+      "bio": "Justin, the soul of the trumpet section for Filarmonica Portuguesa de Tulare, possesses the same passions towards fantasy football. A former president of his frat looking to bring the swagger and sophistication to this pristine league!",
       "photo": "/managers/justin.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "lar", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -99,8 +99,8 @@ export const managers = [
       "managerID" : "722593452524650496",
       "name": "Logan",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "location": "Riverbank, California", // (optional)
+      "bio": "Being a man of many talents, Logan stays mobbin’ around the valley in the back of an ambulance saving lives and cooking up fantasy football trades. This 4-sport generational talent athlete is known for scouting the talents of Jordan Mason, Xavier Worthy and most-impressively…Kenny McIntosh. He can shotgun Michelob’s faster than he’ll hit accept on a trade to sell Jahmyr Gibbs. Being the most slept-on player in the league, Logan hopes to show he’s not all talk, but an elite fantasy football player.",
       "photo": "/managers/logan.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "sf", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -122,8 +122,8 @@ export const managers = [
       "managerID" : "732848788863037440",
       "name": "Gavin",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "location": "Manteca, California", // (optional)
+      "bio": "Gavin, the most delusional Raider fan west of the Mississippi, feels as strongly about his team as he does about Derek Carr's ability to be an elite NFL Quarterback. After hitting the transfer portal from Sacramento State University, Gavin has committed to Stanislaus State University and is a huge addition to the program. Although, sources have it that the program is worried about Gavin potentially having CTE, due to his continued belief in a 2nd year breakout for JSN and thinking Kyle Pitts is still 'that guy'. Self proclaimed TBD's 'Biggest Ball Knower', Gavin and his curly hair plan to use his league mates' tears to clean the dust off his future championship trophies!",
       "photo": "/managers/gavin.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "lv", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -168,7 +168,7 @@ export const managers = [
       "name": "Bolo",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
       "location": "Elk Grove, California", // (optional)
-      "bio": "Age 22. He has the same odds of winning a championship this year as the Cowboys do of winning a playoff game. If he's not making beats, he's off doing undisclosed things to his collection of Cowboy jerseys. Being the only Portuguese/Latino member, Bolo continues to break barriers and prove all the doubters wrong... THAT HE KNOWS BALL.",
+      "bio": "He has the same odds of winning a championship this year as the Cowboys do of winning a playoff game. If he's not making beats, he's off doing undisclosed things to his collection of Cowboy jerseys. Being the only Portuguese/Latino member, Bolo continues to break barriers and prove all the doubters wrong... THAT HE KNOWS BALL.",
       "photo": "/managers/bolo.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "dal", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -181,7 +181,7 @@ export const managers = [
       "favoritePlayer": 6786, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Rookies", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "After winning the championship in TBD's inagural season (2023), I decided I had no team outside of my core players. That offseason, I decided to tear it all down and aim for the first overall pick this year. It worked perfectly, and I now have the 1.03, and 5 more firsts over the next 3 years. I am looking to continue building around my cornerstones and look to compete soon. Look out TBD, Los Azules is coming for our second chip! - Bolo",
+      "philosophy": "Your fantasy team's philosophy",
       "tradingScale": 9, // 1 - 10
       "preferredContact": "Sleeper", // 'Text', 'WhatsApp', 'Sleeper', 'Email', 'Phone', 'Discord', and 'Carrier Pigeon' are currently supplied in the template
     },
@@ -190,8 +190,8 @@ export const managers = [
       "managerID" : "854976092128251904",
       "name": "Luke",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "location": "Manteca, California", // (optional)
+      "bio": "Luke, aka “Lukey Pookie”, aka “Lucas”, aka “Dream Weave”, aka “JUCO Product”, aka “QB1”, has broken barriers that many never thought were possible. In TBD, we highlight the importance of inclusivity within the league and Luke fully encompasses such a value. Being the only non-Portuguese member of the league, Luke continues to fight the battles that come with being the league’s “white boy.” As Luke carries MJC Football and looks to sell the house to acquire the 1.01 to select himself in the 2027 rookie draft, he continuously convinces himself that all 3% of the Portuguese in him means anything. Luke claims he knows college ball more than all of TBD and looks to prove that moving forward...",
       "photo": "/managers/luke.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "no", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -213,8 +213,8 @@ export const managers = [
       "managerID" : "865009922180509696",
       "name": "Daniel",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "location": "Turlock, California", // (optional)
+      "bio": "Daniel lives by Vince Lombardi's motto that, 'Winning isn't everything, but wanting to win is.' Unfortunately for Daniel, his will to win can only take him so far and doesn't always produce real fantasy dubs. This Stan State product's love for Christiano Ronaldo has led him to know football like nobody in this league... as in European football which won't do jackshit for him in TBD. As he expands on his NFL knowledge, Daniel hopes to bring Avós All-Stars some shiny hardware to put in his new crib in Stanislaus county.",
       "photo": "/managers/daniel.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "sf", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
@@ -236,8 +236,8 @@ export const managers = [
       "managerID" : "871263782905794560",
       "name": "Lucas",
       "tookOver": null, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-      "location": "California", // (optional)
-      "bio": "Lorem ipsum...",
+      "location": "Turlock, California", // (optional)
+      "bio": "One of AZB's finest Alto Saxophone players, Lucas, who blows into woodwind instruments harder than he blows into... nevermind. Big League Drea's finest indoor striker hopes his world-class talents transfer over to fantasy football. Although, his love for and time spent studying Kyle Juszczyk tape makes the league question his knowledge of real skill position players. Time for him to wake up and realize this ain't the 1960s, nobody cares about fullbacks anymore, but that's beside the point. Through all his time ignoring Daniel's football takes, Lucas is here to make a name for himself in the fantasy football world.",
       "photo": "/managers/lucas.png", // square ratio recommended (no larger than 500x500)
       "fantasyStart": null, // (optional) when did the manager start playing fantasy football
       "favoriteTeam": "sf", // (optional) favorite NFL team, (follows convention: nyj, sea, mia, etc.) MUST BE LOWERCASE
