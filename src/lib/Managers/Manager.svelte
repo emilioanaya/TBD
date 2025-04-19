@@ -300,6 +300,7 @@
             <!-- philosophy is an optional field -->
             <h3>Team History</h3>
             <p class="philosophy">{@html viewManager.philosophy}</p>
+            <p class="philosophy24">{@html viewManager.philosophy24}</p>
         {/if}
     </div>
 
