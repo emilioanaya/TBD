@@ -142,6 +142,16 @@
         text-indent: 4em;
     }
 
+    .philosophy25 {
+        margin: 2em 1.5em 2em;
+        text-indent: 4em;
+    }
+
+    .philosophy26 {
+        margin: 2em 1.5em 2em;
+        text-indent: 4em;
+    }
+
     .loading {
         display: block;
         width: 85%;
