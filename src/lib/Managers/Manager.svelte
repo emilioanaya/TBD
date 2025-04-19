@@ -301,6 +301,8 @@
             <h3>Team History</h3>
             <p class="philosophy">{@html viewManager.philosophy}</p>
             <p class="philosophy24">{@html viewManager.philosophy24}</p>
+            <p class="philosophy25">{@html viewManager.philosophy25}</p>
+            <p class="philosophy26">{@html viewManager.philosophy26}</p>
         {/if}
     </div>
 
