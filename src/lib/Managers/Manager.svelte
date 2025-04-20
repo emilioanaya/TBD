@@ -139,7 +139,7 @@
 
     .philosophy24 {
         margin: 2em 1.5em 2em;
-        text-indent: 18em;
+        text-indent: 19em;
     }
 
     .philosophy25 {
