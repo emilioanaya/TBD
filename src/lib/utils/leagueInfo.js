@@ -44,7 +44,8 @@ export const managers = [
       "favoritePlayer": 9493, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Rookies", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (4-10) 7th",
+      "philosophy": "All-Time Record:",
+      "philosophy23": "2023: (4-10) 7th",
       "philosophy24": "2024: (7-7) 3rd 🥉",
       "philosophy25": null,
       "philosophy26": null,
@@ -70,7 +71,8 @@ export const managers = [
       "favoritePlayer": 5955, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "QB", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Vets", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (12-2) 2nd 🥈",
+      "philosophy": "All-Time Record:",
+      "philosophy23": "2023: (12-2) 2nd 🥈",
       "philosophy24": "2024: (8-6) 4th",
       "philosophy25": null,
       "philosophy26": null,
@@ -96,7 +98,8 @@ export const managers = [
       "favoritePlayer": 6904, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Rookies", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (5-9) 4th",
+      "philosophy": "All-Time Record:",
+      "philosophy23": "2023: (5-9) 4th",
       "philosophy24": "2024: (6-8) 6th",
       "philosophy25": null,
       "philosophy26": null,
@@ -122,7 +125,8 @@ export const managers = [
       "favoritePlayer": 11566, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Rookies", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (3-11) 10th",
+      "philosophy": "All-Time Record:", 
+      "philosophy23": "2023: (3-11) 10th",
       "philosophy24": "2024: (6-8) 8th",
       "philosophy25": null,
       "philosophy26": null,
@@ -148,7 +152,8 @@ export const managers = [
       "favoritePlayer": 11632, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Vets", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (4-10) 9th",
+      "philosophy": "All-Time Record:",  
+      "philosophy23": "2023: (4-10) 9th",
       "philosophy24": "2024: (10-4) 1st 🏆",
       "philosophy25": null,
       "philosophy26": null,
@@ -174,7 +179,8 @@ export const managers = [
       "favoritePlayer": 8183, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "RB", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Vets", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (10-4) 5th",
+      "philosophy": "All-Time Record:",
+      "philosophy23": "2023: (10-4) 5th",
       "philosophy24": "2024: (10-4) 2nd 🥈",
       "philosophy25": null,
       "philosophy26": null,
@@ -199,7 +205,8 @@ export const managers = [
       "favoritePlayer": 6786, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Rookies", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (6-8) 1st 🏆",
+      "philosophy": "All-Time Record:",  
+      "philosophy23": "2023: (6-8) 1st 🏆",
       "philosophy24": "2024: (4-10) 10th",
       "philosophy25": null,
       "philosophy26": null,
@@ -225,7 +232,8 @@ export const managers = [
       "favoritePlayer": 2028, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "RB", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Vets", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (11-3) 6th",
+      "philosophy": "All-Time Record:",
+      "philosophy23": "2023: (11-3) 6th",
       "philosophy24": "2024: (5-9) 9th",
       "philosophy25": null,
       "philosophy26": null,
@@ -251,7 +259,8 @@ export const managers = [
       "favoritePlayer": 7569, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "WR", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Vets", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (11-3) 3rd 🥉",
+      "philosophy": "All-Time Record:",
+      "philosophy23": "2023: (11-3) 3rd 🥉",
       "philosophy24": "2024: (8-6) 5th",
       "philosophy25": null,
       "philosophy26": null,
@@ -277,7 +286,8 @@ export const managers = [
       "favoritePlayer": 6803, // (optional) this corresponds to the Sleeper player ID (https://api.sleeper.app/v1/players/nfl)
       "valuePosition": "RB", // (optional) Favorite position (QB, WR, RB, TE, etc.)
       "rookieOrVets": "Vets", // (optional) 'Rookies' or 'Vets' (anything else and you will need to add a new png to /static/ similar to the 'Rookies.png' and 'Vets.png' currently in there)
-      "philosophy": "2023: (4-10) 8th",
+      "philosophy": "All-Time Record:",
+      "philosophy23": "2023: (4-10) 8th",
       "philosophy24": "2024: (6-8) 7th",
       "philosophy25": null,
       "philosophy26": null,
