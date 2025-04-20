@@ -137,6 +137,11 @@
         text-indent: 4em;
     }
 
+    .philosophy23 {
+        margin: 2em 1.5em 2em;
+        text-indent: 4em;
+    }
+
     .philosophy24 {
         margin: 2em 1.5em 2em;
         text-indent: 4em;
