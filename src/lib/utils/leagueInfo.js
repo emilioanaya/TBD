@@ -7,6 +7,8 @@ export const enableBlog = true; // requires VITE_CONTENTFUL_ACCESS_TOKEN and VIT
 
 /*   STEP 2   */
 export const homepageText = `
+<script src="https://cdn.logwork.com/widget/countdown.js"></script>
+<a href="https://logwork.com/countdown-66h3" class="countdown-timer" data-style="columns" data-timezone="America/Los_Angeles" data-date="2025-05-18 15:00" data-digitscolor="#4166b5">2025 TBD Draft</a>
   <p>The TBD Dynasty League isn't just any fantasy football league — it’s the greatest Portuguese fantasy football league on the planet. Founded in 2023, TBD brings together ten fierce competitors battling year-round in a Superflex, PPR, Tight End Premium format that rewards bold trades, deep scouting, and dynasty-level strategy.</p>
   <p>In its inaugural season, Los Azules (formerly My Diggs Small), led by an unimaginable wide receiver room of CeeDee Lamb, Justin Jefferson and Davante Adams, stunned the league by storming from a 6-8 regular season finish to win it all in the playoffs. The following year, Norcal Seleçáo rose to power, claiming the 2024 championship behind a loaded roster headlined by Trey McBride, Ja'Marr Chase, and rookie Malik Nabers.</p>
   <p>TBD isn’t just about the trophies — it’s about long-term rivalries, blockbuster trades, and a tight-knit community with Portuguese roots and plenty of trash talk. Every offseason move matters, every draft pick counts, and every matchup adds fuel to the fire.</p>
