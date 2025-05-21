@@ -160,7 +160,7 @@
 
     <h3 class="subSectionHeading" bind:this={oneTwo}>1.2 Trading</h3>
     
-    <p>Trading of players and draft picks (up to 3 draft years away) are allowed. Tradable assets include players and draft picks.</p>
+    <p>Trading of players, FAAB, and draft picks (up to 3 draft years away) are allowed. Tradable assets include players, Free Agent Acquisition Budget money - FAAB, and draft picks.</p>
     
     <h4 bind:this={oneTwoOne}>1.2.1 Trade Deadline</h4>
     <div class="subBlock">
