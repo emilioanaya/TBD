@@ -171,7 +171,7 @@
     
     <h3 bind:this={oneThree}>1.3 Waiver Wire</h3>
     
-    <p>Rolling Waivers system. Rolling waivers are continuous and the last person to waiver a player is placed last into the waiver priority.</p>
+    <p>FAAB Waivers system. Teams are given $100 of FAAB twice a year, at the start of Week 1 and at the start of the offseason. If a team trades and has more than $100 during a reset, they will keep that amount. If two teams bid the same amount, it will then and only then come down to waiver priority. Waivers are processed every day.</p>
 
     
     
