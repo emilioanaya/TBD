@@ -178,7 +178,7 @@
     <h2 class="sectionHeading" bind:this={two}>Section 2 Drafting</h2>
     
     <h3 bind:this={twoOne}>2.1 Draft Order</h3>
-    <p>The draft order each year will be a linear draft in reverse order of the previous year’s regular season standings. For picks 1 to 4, it is 10th to 7th place teams from the season before. For teams who make the playoffs, it is determined by each week a team loses. For example, in Week 1 of playoffs, the two teams that are knocked out are put head-to-head to determine draft order. The team with the least Points For during the regular season receives the earlier pick (Pick 5), the higher Points For receives the later pick (Pick 6).</p>
+    <p>The draft order each year will be a linear draft in reverse order of the previous year’s regular season standings. For picks 1 to 4, it is 10th to 7th place teams from the season before. For teams who make the playoffs, it is determined by each week a team loses. For example, in Week 1 of playoffs, the two teams that are knocked out are put head-to-head to determine draft order. The team with the lower Max Points For during the regular season receives the earlier pick (Pick 5), the higher Max Points For receives the later pick (Pick 6).</p>
 
     <h3 bind:this={twoTwo}>2.2 Rookie Drafts</h3>
     <p>Rookie drafts will consist of 4 round of drafting, with 5 minutes alotted for each pick. There is a minimum of a 2 minute time period before managers can pick, to allow trade talks.</p>
