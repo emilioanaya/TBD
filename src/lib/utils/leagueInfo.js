@@ -15,7 +15,11 @@ export const homepageText = `
   <p>Norcal Seleção asserted dominance throughout the season, capturing the championship behind a stacked roster led by Trey McBride, Ja’Marr Chase, and rookie standout Malik Nabers. Their title run marked the rise of one of TBD’s earliest powerhouses.</p>
   <h6>🏈 The Big Bowl III (2025) - Champion: Avós All-Stars (Daniel)</h6>
   <p>Entering the playoffs as the 4 seed with an 8–6 regular-season record, Daniel and the Avós All-Stars navigated a competitive field and claimed the third Big Bowl title, adding another chapter to TBD’s growing legacy.</p>
-  <p2>Whether you’re a founding member or a curious onlooker, welcome to TBD — where legends are built, rebuilt, and sometimes tank for picks.</p2>
+  <hr />
+  <div class="subBlock">
+           
+  </div>
+  <p>Whether you’re a founding member or a curious onlooker, welcome to TBD — where legends are built, rebuilt, and sometimes tank for picks.</p>
   <p>Follow us on Instagram for more updates! <a href="https://www.instagram.com/thebigdynasty/">@thebigdynasty</a></p>
   <p>Established 2023</p>
 `;
