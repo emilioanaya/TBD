@@ -83,7 +83,7 @@ export const managers = [
       "philosophy": "All-Time Record: 30 - 12",
       "philosophy23": "2023: (12-2) 2nd 🥈",
       "philosophy24": "2024: (8-6) 4th",
-      "philosophy25": "2025: (10-4) TBD",
+      "philosophy25": "2025: (10-4) 4th",
       "philosophy26": null,
       "philosophy27": null,
       "tradingScale": 10, // 1 - 10
@@ -167,7 +167,7 @@ export const managers = [
       "philosophy": "All-Time Record: 26 - 16",  
       "philosophy23": "2023: (4-10) 9th",
       "philosophy24": "2024: (10-4) 1st 🏆",
-      "philosophy25": "2025: (12-2) TBD",
+      "philosophy25": "2025: (12-2) 3rd 🥉",
       "philosophy26": null,
       "philosophy27": null,
       "tradingScale": 8, // 1 - 10
@@ -250,7 +250,7 @@ export const managers = [
       "philosophy": "All-Time Record: 22 - 20",
       "philosophy23": "2023: (11-3) 6th",
       "philosophy24": "2024: (5-9) 9th",
-      "philosophy25": "2025: (6-8) TBD",
+      "philosophy25": "2025: (6-8) 2nd 🥈",
       "philosophy26": null,
       "philosophy27": null,
       "tradingScale": 6, // 1 - 10
@@ -278,7 +278,7 @@ export const managers = [
       "philosophy": "All-Time Record: 27 - 15",
       "philosophy23": "2023: (11-3) 3rd 🥉",
       "philosophy24": "2024: (8-6) 5th",
-      "philosophy25": "2025: (8-6) TBD",
+      "philosophy25": "2025: (8-6) 1st 🏆",
       "philosophy26": null,
       "philosophy27": null,
       "tradingScale": 9, // 1 - 10
