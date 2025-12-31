@@ -7,7 +7,8 @@ export const enableBlog = false; // requires VITE_CONTENTFUL_ACCESS_TOKEN and VI
 
 /*   STEP 2   */
 export const homepageText = `
-  <p>The TBD Dynasty League isn’t just any fantasy football league — it’s the greatest Portuguese fantasy football league on the planet. Founded in 2023, TBD brings together ten fierce competitors battling year-round in a Superflex, PPR, Tight End Premium format that rewards bold trades, deep scouting, and true dynasty-level strategy. TBD isn’t just about trophies — it’s about long-term rivalries, blockbuster trades, and a tight-knit community rooted in Portuguese pride and nonstop trash talk. Every offseason move matters. Every draft pick counts. Every matchup adds fuel to the fire. However, since its founding, the league’s championship — The Big Bowl — has become the ultimate measure of dynasty success.</p>
+  <p>The TBD Dynasty League isn’t just any fantasy football league — it’s the greatest Portuguese fantasy football league on the planet. Founded in 2023, TBD brings together ten fierce competitors battling year-round in a Superflex, PPR, Tight End Premium format that rewards bold trades, deep scouting, and true dynasty-level strategy.</p>
+  <p>TBD isn’t just about trophies — it’s about long-term rivalries, blockbuster trades, and a tight-knit community rooted in Portuguese pride and nonstop trash talk. Every offseason move matters. Every draft pick counts. Every matchup adds fuel to the fire. However, since its founding, the league’s championship — The Big Bowl — has become the ultimate measure of dynasty success.</p>
   <p>Whether you’re a founding member or a curious onlooker, welcome to TBD — where legends are built, rebuilt, and sometimes tank for picks.</p>
   <hr />
   <h4>The Big Bowl History 🏆:</h4>
