@@ -16,9 +16,6 @@ export const homepageText = `
   <h6>🏈 The Big Bowl III (2025) - Champion: Avós All-Stars (Daniel)</h6>
   <p>Entering the playoffs as the 4 seed with an 8–6 regular-season record, Daniel and the Avós All-Stars navigated a competitive field and claimed the third Big Bowl title, adding another chapter to TBD’s growing legacy.</p>
   <hr />
-  <div class="subBlock">
-           
-  </div>
   <p>Whether you’re a founding member or a curious onlooker, welcome to TBD — where legends are built, rebuilt, and sometimes tank for picks.</p>
   <p>Follow us on Instagram for more updates! <a href="https://www.instagram.com/thebigdynasty/">@thebigdynasty</a></p>
   <p>Established 2023</p>
