@@ -9,10 +9,12 @@ export const enableBlog = false; // requires VITE_CONTENTFUL_ACCESS_TOKEN and VI
 export const homepageText = `
   <p>The TBD Dynasty League isn’t just any fantasy football league — it’s the greatest Portuguese fantasy football league on the planet. Founded in 2023, TBD brings together ten fierce competitors battling year-round in a Superflex, PPR, Tight End Premium format that rewards bold trades, deep scouting, and true dynasty-level strategy. TBD isn’t just about trophies — it’s about long-term rivalries, blockbuster trades, and a tight-knit community rooted in Portuguese pride and nonstop trash talk. Every offseason move matters. Every draft pick counts. Every matchup adds fuel to the fire. However, since its founding, the league’s championship — The Big Bowl — has become the ultimate measure of dynasty success.</p>
   <h4>The Big Bowl History 🏆:</h4>
-  <h6>The Big Bowl I (2023) -       Los Azules (Bolo)</h6>
+  <h6>The Big Bowl I (2023) - Champion: Los Azules (Bolo)</h6>
   <p>After finishing the regular season at 6–8, Los Azules caught fire at the perfect time. Powered by a legendary wide receiver trio of CeeDee Lamb, Justin Jefferson, and Davante Adams, they completed one of the most improbable playoff runs in TBD history.</p>
-  <p>The Big Bowl II (2024) - Champion: Norcal Seleção (Gavin) - Norcal Seleção asserted dominance throughout the season, capturing the championship behind a stacked roster led by Trey McBride, Ja’Marr Chase, and rookie standout Malik Nabers. Their title run marked the rise of one of TBD’s earliest powerhouses.</p>
-  <p>The Big Bowl III (2025) - Champion: Avós All-Stars (Daniel) - Entering the playoffs as the 4 seed with an 8–6 regular-season record, Daniel and the Avós All-Stars navigated a competitive field and claimed the third Big Bowl title, adding another chapter to TBD’s growing legacy.</p>
+  <h6>The Big Bowl II (2024) - Champion: Norcal Seleçáo (Gavin)</h6>
+  <p>Norcal Seleção asserted dominance throughout the season, capturing the championship behind a stacked roster led by Trey McBride, Ja’Marr Chase, and rookie standout Malik Nabers. Their title run marked the rise of one of TBD’s earliest powerhouses.</p>
+  <h6>The Big Bowl III (2025) - Champion: Avós All-Stars (Daniel)</h6>
+  <p>Entering the playoffs as the 4 seed with an 8–6 regular-season record, Daniel and the Avós All-Stars navigated a competitive field and claimed the third Big Bowl title, adding another chapter to TBD’s growing legacy.</p>
   <p>Whether you’re a founding member or a curious onlooker, welcome to TBD — where legends are built, rebuilt, and sometimes tank for picks.</p>
   <p>Follow us on Instagram for more updates! <a href="https://www.instagram.com/thebigdynasty/">@thebigdynasty</a></p>
   <p>Established 2023</p>
