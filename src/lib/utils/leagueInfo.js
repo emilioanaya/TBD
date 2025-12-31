@@ -8,6 +8,7 @@ export const enableBlog = false; // requires VITE_CONTENTFUL_ACCESS_TOKEN and VI
 /*   STEP 2   */
 export const homepageText = `
   <p>The TBD Dynasty League isn’t just any fantasy football league — it’s the greatest Portuguese fantasy football league on the planet. Founded in 2023, TBD brings together ten fierce competitors battling year-round in a Superflex, PPR, Tight End Premium format that rewards bold trades, deep scouting, and true dynasty-level strategy. TBD isn’t just about trophies — it’s about long-term rivalries, blockbuster trades, and a tight-knit community rooted in Portuguese pride and nonstop trash talk. Every offseason move matters. Every draft pick counts. Every matchup adds fuel to the fire. However, since its founding, the league’s championship — The Big Bowl — has become the ultimate measure of dynasty success.</p>
+  <div class="subBlock">
   <h4>The Big Bowl History 🏆:</h4>
   <h6>🏈 The Big Bowl I (2023) - Champion: Los Azules (Bolo)</h6>
   <p>After finishing the regular season at 6–8, Los Azules caught fire at the perfect time. Powered by a legendary wide receiver trio of CeeDee Lamb, Justin Jefferson, and Davante Adams, they completed one of the most improbable playoff runs in TBD history.</p>
