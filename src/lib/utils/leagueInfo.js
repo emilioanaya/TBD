@@ -14,10 +14,13 @@ export const homepageText = `
   <h4>The Big Bowl History 🏆:</h4>
   <h6>🏈 The Big Bowl I (2023) - Champion: Los Azules (Bolo)</h6>
   <p>After finishing the regular season at 6–8, Los Azules caught fire at the perfect time. Powered by a legendary wide receiver trio of CeeDee Lamb, Justin Jefferson, and Davante Adams, they completed one of the most improbable playoff runs in TBD history.</p>
+  <p>Championship MVP - CeeDee Lamb - 40.20 points</p>
   <h6>🏈 The Big Bowl II (2024) - Champion: Norcal Seleçáo (Gavin)</h6>
   <p>Norcal Seleção asserted dominance throughout the season, capturing the championship behind a stacked roster led by Trey McBride, Ja’Marr Chase, and rookie standout Malik Nabers. Their title run marked the rise of one of TBD’s earliest powerhouses.</p>
+  <p>Championship MVP - Trey McBride - 36.30 points</p>
   <h6>🏈 The Big Bowl III (2025) - Champion: Avós All-Stars (Daniel)</h6>
   <p>Entering the playoffs as the 4 seed with an 8–6 regular-season record, Daniel and the Avós All-Stars navigated a competitive field and claimed the third Big Bowl title, adding another chapter to TBD’s growing legacy.</p>
+  <p>Championship MVP - Derrick Henry - 45.60 points</p>
   <hr />
   <p>Follow us on Instagram for more updates! <a href="https://www.instagram.com/thebigdynasty/">@thebigdynasty</a></p>
   <p>Established 2023</p>
