@@ -329,7 +329,7 @@
 <div class="awards">
 	<h3>{year} Awards</h3>
 
-	<img src="/TBB Champ.png" class="banner" alt="The Big Bowl Champion" />
+	<img src="/TBB Champ NEW.png" class="banner" alt="The Big Bowl Champion" />
 
 	<div id="podium">
 		<img src="/podium.png" class="podiumImage" alt="podium" />
