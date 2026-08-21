@@ -8,51 +8,51 @@
     export let podiums;
     export let leagueTeamManagers;
 
+
     /*
-        Build the all-time championship totals.
+        Convert a season year into the Big Bowl numeral.
 
-        Each podium contains:
-        - year
-        - champion
-        - second
-        - third
-        - divisions
-        - toilet
-
-        We only use champion for the Trophy Case.
+        2023 = I
+        2024 = II
+        2025 = III
+        2026 = IV
+        etc.
     */
+    function toRoman(number) {
+        const values = [
+            [1000, 'M'],
+            [900, 'CM'],
+            [500, 'D'],
+            [400, 'CD'],
+            [100, 'C'],
+            [90, 'XC'],
+            [50, 'L'],
+            [40, 'XL'],
+            [10, 'X'],
+            [9, 'IX'],
+            [5, 'V'],
+            [4, 'IV'],
+            [1, 'I']
+        ];
 
-    let championshipCounts = {};
+        let result = '';
 
-    for (const podium of podiums) {
-
-        if (!podium.champion) continue;
-
-        const rosterID = podium.champion;
-
-        if (!championshipCounts[rosterID]) {
-            championshipCounts[rosterID] = {
-                rosterID,
-                championships: 0,
-                latestYear: podium.year
-            };
+        for (const [value, numeral] of values) {
+            while (number >= value) {
+                result += numeral;
+                number -= value;
+            }
         }
 
-        championshipCounts[rosterID].championships += 1;
-
-        if (podium.year > championshipCounts[rosterID].latestYear) {
-            championshipCounts[rosterID].latestYear = podium.year;
-        }
+        return result;
     }
 
-    const allTimeChampions = Object.values(championshipCounts)
-        .sort((a, b) => {
-            if (b.championships !== a.championships) {
-                return b.championships - a.championships;
-            }
 
-            return b.latestYear - a.latestYear;
-        });
+    function getBigBowlName(year) {
+        const bowlNumber = Number(year) - 2022;
+        return `The Big Bowl ${toRoman(bowlNumber)}`;
+    }
+
 
     function getTeamName(rosterID, year) {
         return getNestedTeamNamesFromTeamManagers(
@@ -62,6 +62,7 @@
         );
     }
 
+
     function getTeamLogo(rosterID, year) {
         return getAvatarFromTeamManagers(
             leagueTeamManagers,
@@ -70,13 +71,82 @@
         );
     }
 
+
     function goToManager(rosterID, year) {
+        if (!rosterID) return;
+
         gotoManager({
             year,
             leagueTeamManagers,
             rosterID
         });
     }
+
+
+    /*
+        Build the all-time championship history.
+
+        The roster ID is used to combine championships won
+        by the same team across multiple seasons.
+    */
+    let championshipMap = {};
+
+    for (const podium of podiums) {
+
+        if (!podium.champion) continue;
+
+        const rosterID = String(podium.champion);
+
+        if (!championshipMap[rosterID]) {
+            championshipMap[rosterID] = {
+                rosterID: podium.champion,
+                years: []
+            };
+        }
+
+        championshipMap[rosterID].years.push(Number(podium.year));
+    }
+
+
+    const allTimeChampions = Object.values(championshipMap)
+        .map(team => ({
+            ...team,
+            years: [...team.years].sort((a, b) => a - b)
+        }))
+        .sort((a, b) => {
+
+            if (b.years.length !== a.years.length) {
+                return b.years.length - a.years.length;
+            }
+
+            return Math.max(...b.years) - Math.max(...a.years);
+        });
+
+
+    /*
+        Current team information.
+
+        We use the most recent season available for the
+        Trophy Case so the Trophy Case reflects the current
+        team name/logo rather than the historical one.
+
+        The year-by-year history below continues using
+        the historical season data.
+    */
+    const currentYear = Math.max(
+        ...podiums.map(podium => Number(podium.year))
+    );
+
+
+    function getCurrentTeamName(rosterID) {
+        return getTeamName(rosterID, currentYear);
+    }
+
+
+    function getCurrentTeamLogo(rosterID) {
+        return getTeamLogo(rosterID, currentYear);
+    }
+
 </script>
 
 
@@ -92,11 +162,11 @@
     }
 
 
-    /* HEADER */
+    /* PAGE HEADER */
 
     .header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 28px;
     }
 
     .header h1 {
@@ -115,58 +185,64 @@
 
     .trophyCase {
         border: 1px solid var(--ddd);
+        border-top: 3px solid var(--blueOne);
         background-color: var(--f3f3f3);
-        padding: 25px 20px 22px;
-        text-align: center;
+        padding: 24px 18px 20px;
         margin-bottom: 35px;
+    }
+
+    .trophyCaseHeader {
+        text-align: center;
+        margin-bottom: 22px;
     }
 
     .trophyImage {
         display: block;
-        width: 120px;
-        height: 120px;
+        width: 110px;
+        height: 110px;
         object-fit: contain;
         margin: 0 auto 8px;
         filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.25));
     }
 
-    .trophyCase h2 {
+    .trophyCaseHeader h2 {
         margin: 0;
-        font-size: 1.35em;
+        font-size: 1.4em;
     }
 
-    .trophyCaseSubtitle {
-        margin: 5px 0 22px;
+    .trophyCaseHeader p {
+        margin: 5px 0 0;
         color: #888;
-        font-size: 0.9em;
+        font-size: 0.88em;
     }
 
 
     /* CHAMPION LIST */
 
     .championList {
-        max-width: 700px;
+        max-width: 750px;
         margin: 0 auto;
-        text-align: left;
     }
 
     .championRow {
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 14px;
         padding: 12px 10px;
         border-top: 1px solid var(--ddd);
         cursor: pointer;
-        transition: background-color 0.15s ease;
+        transition: background-color 0.15s ease,
+                    transform 0.15s ease;
     }
 
     .championRow:hover {
         background-color: var(--ebebeb);
+        transform: translateY(-1px);
     }
 
     .championLogo {
-        width: 52px;
-        height: 52px;
+        width: 55px;
+        height: 55px;
         object-fit: contain;
         border-radius: 50%;
         border: 1px solid var(--bbb);
@@ -180,28 +256,36 @@
     }
 
     .championName {
-        font-weight: 600;
-        font-size: 0.95em;
+        font-weight: 700;
+        font-size: 0.98em;
     }
 
-    .championOwner {
+    .championManager {
         margin-top: 3px;
         color: #888;
-        font-size: 0.8em;
+        font-size: 0.82em;
+    }
+
+    .championYears {
+        margin-top: 4px;
+        color: #888;
+        font-size: 0.78em;
+        font-style: italic;
     }
 
     .trophyCount {
+        text-align: right;
         white-space: nowrap;
         font-weight: 700;
-        font-size: 0.95em;
+        font-size: 0.9em;
     }
 
 
-    /* HISTORY */
+    /* HISTORY HEADER */
 
     .historyHeader {
         text-align: center;
-        margin-bottom: 22px;
+        margin-bottom: 20px;
     }
 
     .historyHeader h2 {
@@ -212,16 +296,16 @@
     .historyHeader p {
         margin: 5px 0 0;
         color: #888;
-        font-size: 0.9em;
+        font-size: 0.88em;
     }
 
 
-    /* SEASON */
+    /* SEASON CARD */
 
     .season {
         border: 1px solid var(--ddd);
         background-color: var(--f3f3f3);
-        margin-bottom: 25px;
+        margin-bottom: 24px;
         overflow: hidden;
     }
 
@@ -243,7 +327,7 @@
     }
 
 
-    /* BIG BOWL WINNER */
+    /* CHAMPION */
 
     .championBlock {
         text-align: center;
@@ -251,9 +335,10 @@
         border-bottom: 1px solid var(--ddd);
     }
 
-    .championBlock h3 {
+    .championTitle {
         margin: 0 0 12px;
         font-size: 1.05em;
+        font-weight: 700;
     }
 
     .bigChampionLogo {
@@ -276,14 +361,10 @@
         font-weight: 700;
     }
 
-    .bigChampionOwner {
+    .bigChampionManager {
         margin-top: 3px;
         color: #888;
-        font-size: 0.85em;
-    }
-
-    .clickable {
-        cursor: pointer;
+        font-size: 0.84em;
     }
 
 
@@ -329,6 +410,13 @@
     .placeName {
         font-size: 0.82em;
         line-height: 1.2;
+        font-weight: 600;
+    }
+
+    .placeManager {
+        margin-top: 3px;
+        color: #888;
+        font-size: 0.75em;
     }
 
 
@@ -369,6 +457,11 @@
         font-weight: 600;
     }
 
+    .regularSeasonManager {
+        font-size: 0.78em;
+        color: #888;
+    }
+
 
     /* MOBILE */
 
@@ -379,12 +472,38 @@
         }
 
         .trophyCase {
-            padding: 20px 12px;
+            padding: 20px 10px;
         }
 
         .trophyImage {
-            width: 100px;
-            height: 100px;
+            width: 95px;
+            height: 95px;
+        }
+
+        .championRow {
+            gap: 10px;
+            padding: 11px 5px;
+        }
+
+        .championLogo {
+            width: 48px;
+            height: 48px;
+        }
+
+        .championName {
+            font-size: 0.9em;
+        }
+
+        .championManager {
+            font-size: 0.76em;
+        }
+
+        .championYears {
+            font-size: 0.72em;
+        }
+
+        .trophyCount {
+            font-size: 0.75em;
         }
 
         .seasonContent {
@@ -409,15 +528,6 @@
 
         .placeInfo {
             flex: 1;
-        }
-
-        .championLogo {
-            width: 45px;
-            height: 45px;
-        }
-
-        .trophyCount {
-            font-size: 0.85em;
         }
     }
 
@@ -444,68 +554,80 @@
 
     <div class="trophyCase">
 
-        <img
-            src="/TBB%20Trophy.png"
-            class="trophyImage"
-            alt="The Big Dynasty Championship Trophy"
-        />
+        <div class="trophyCaseHeader">
 
-        <h2>Trophy Case</h2>
+            <img
+                src="/TBB%20Trophy.png"
+                class="trophyImage"
+                alt="The Big Dynasty Championship Trophy"
+            />
 
-        <p class="trophyCaseSubtitle">
-            All-time Big Bowl champions
-        </p>
+            <h2>Trophy Case</h2>
+
+            <p>
+                Every Big Bowl champion in league history
+            </p>
+
+        </div>
 
 
         <div class="championList">
 
             {#each allTimeChampions as championTeam}
 
-                {@const latestPodium = podiums.find(
-                    podium => podium.year == championTeam.latestYear
-                )}
-
                 <div
                     class="championRow"
+                    role="button"
+                    tabindex="0"
                     onclick={() =>
                         goToManager(
                             championTeam.rosterID,
-                            championTeam.latestYear
+                            currentYear
                         )
                     }
+                    onkeydown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            goToManager(
+                                championTeam.rosterID,
+                                currentYear
+                            );
+                        }
+                    }}
                 >
 
                     <img
-                        src={getTeamLogo(
-                            championTeam.rosterID,
-                            championTeam.latestYear
-                        )}
+                        src={getCurrentTeamLogo(championTeam.rosterID)}
                         class="championLogo"
-                        alt="champion team logo"
+                        alt="team logo"
                     />
 
                     <div class="championInfo">
 
                         <div class="championName">
-                            {@html getTeamName(
-                                championTeam.rosterID,
-                                championTeam.latestYear
+                            {@html getCurrentTeamName(
+                                championTeam.rosterID
                             )}
                         </div>
 
-                        <div class="championOwner">
-                            Big Bowl Champion
+                        <div class="championManager">
+                            Manager
+                        </div>
+
+                        <div class="championYears">
+
+                            {championTeam.years.join(' • ')}
+
                         </div>
 
                     </div>
 
                     <div class="trophyCount">
 
-                        🏆 {championTeam.championships}
+                        🏆 {championTeam.years.length}
 
-                        {championTeam.championships === 1
-                            ? ' Trophy'
-                            : ' Trophies'}
+                        {championTeam.years.length === 1
+                            ? ' Big Bowl'
+                            : ' Big Bowls'}
 
                     </div>
 
@@ -538,7 +660,7 @@
             <div class="seasonHeader">
 
                 <span>
-                    {podium.year} — The Big Bowl
+                    {podium.year} — {getBigBowlName(podium.year)}
                 </span>
 
             </div>
@@ -547,20 +669,32 @@
             <div class="seasonContent">
 
 
-                <!-- CHAMPION -->
+                <!-- BIG BOWL CHAMPION -->
 
                 <div class="championBlock">
 
-                    <h3>🏆 Big Bowl Champion</h3>
+                    <div class="championTitle">
+                        🏆 Big Bowl Champion
+                    </div>
 
                     <div
                         class="clickable"
+                        role="button"
+                        tabindex="0"
                         onclick={() =>
                             goToManager(
                                 podium.champion,
                                 podium.year
                             )
                         }
+                        onkeydown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                goToManager(
+                                    podium.champion,
+                                    podium.year
+                                );
+                            }
+                        }}
                     >
 
                         <img
@@ -581,6 +715,10 @@
 
                         </div>
 
+                        <div class="bigChampionManager">
+                            Manager
+                        </div>
+
                     </div>
 
                 </div>
@@ -590,14 +728,27 @@
 
                 <div class="podium">
 
+
+                    <!-- 1ST -->
+
                     <div
-                        class="place clickable"
+                        class="place"
+                        role="button"
+                        tabindex="0"
                         onclick={() =>
                             goToManager(
                                 podium.champion,
                                 podium.year
                             )
                         }
+                        onkeydown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                goToManager(
+                                    podium.champion,
+                                    podium.year
+                                );
+                            }
+                        }}
                     >
 
                         <img
@@ -622,19 +773,35 @@
                                 )}
                             </div>
 
+                            <div class="placeManager">
+                                Manager
+                            </div>
+
                         </div>
 
                     </div>
 
 
+                    <!-- 2ND -->
+
                     <div
-                        class="place clickable"
+                        class="place"
+                        role="button"
+                        tabindex="0"
                         onclick={() =>
                             goToManager(
                                 podium.second,
                                 podium.year
                             )
                         }
+                        onkeydown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                goToManager(
+                                    podium.second,
+                                    podium.year
+                                );
+                            }
+                        }}
                     >
 
                         <img
@@ -659,19 +826,35 @@
                                 )}
                             </div>
 
+                            <div class="placeManager">
+                                Manager
+                            </div>
+
                         </div>
 
                     </div>
 
 
+                    <!-- 3RD -->
+
                     <div
-                        class="place clickable"
+                        class="place"
+                        role="button"
+                        tabindex="0"
                         onclick={() =>
                             goToManager(
                                 podium.third,
                                 podium.year
                             )
                         }
+                        onkeydown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                goToManager(
+                                    podium.third,
+                                    podium.year
+                                );
+                            }
+                        }}
                     >
 
                         <img
@@ -694,6 +877,10 @@
                                     podium.third,
                                     podium.year
                                 )}
+                            </div>
+
+                            <div class="placeManager">
+                                Manager
                             </div>
 
                         </div>
@@ -729,13 +916,23 @@
 
 
                                 <div
-                                    class="regularSeasonTeam clickable"
+                                    class="regularSeasonTeam"
+                                    role="button"
+                                    tabindex="0"
                                     onclick={() =>
                                         goToManager(
                                             division.rosterID,
                                             podium.year
                                         )
                                     }
+                                    onkeydown={(event) => {
+                                        if (event.key === 'Enter' || event.key === ' ') {
+                                            goToManager(
+                                                division.rosterID,
+                                                podium.year
+                                            );
+                                        }
+                                    }}
                                 >
 
                                     <img
@@ -747,12 +944,22 @@
                                         alt="regular season champion"
                                     />
 
-                                    <span class="regularSeasonName">
+                                    <span>
 
-                                        {@html getTeamName(
-                                            division.rosterID,
-                                            podium.year
-                                        )}
+                                        <span class="regularSeasonName">
+
+                                            {@html getTeamName(
+                                                division.rosterID,
+                                                podium.year
+                                            )}
+
+                                        </span>
+
+                                        <br />
+
+                                        <span class="regularSeasonManager">
+                                            Manager
+                                        </span>
 
                                     </span>
 
