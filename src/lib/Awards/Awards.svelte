@@ -2,99 +2,61 @@
 	import { gotoManager } from '$lib/utils/helper';
 	import {
 		getAvatarFromTeamManagers,
-		getNestedTeamNamesFromTeamManagers,
-		getTeamFromTeamManagers
+		getNestedTeamNamesFromTeamManagers
 	} from '$lib/utils/helperFunctions/universalFunctions';
 
 	export let podium, leagueTeamManagers;
 
 	const { year, champion, second, third, divisions } = podium;
 
-	// Big Bowl numbering
-	function getBigBowlNumber(year) {
-		const bowlNumber = Number(year) - 2022;
+	/*
+	 * 2023 = The Big Bowl I
+	 * 2024 = The Big Bowl II
+	 * 2025 = The Big Bowl III
+	 * etc.
+	 */
+	function toRoman(number) {
+		const values = [
+			[1000, 'M'],
+			[900, 'CM'],
+			[500, 'D'],
+			[400, 'CD'],
+			[100, 'C'],
+			[90, 'XC'],
+			[50, 'L'],
+			[40, 'XL'],
+			[10, 'X'],
+			[9, 'IX'],
+			[5, 'V'],
+			[4, 'IV'],
+			[1, 'I']
+		];
 
-		const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+		let result = '';
 
-		return roman[bowlNumber - 1] || bowlNumber;
+		for (const [value, numeral] of values) {
+			while (number >= value) {
+				result += numeral;
+				number -= value;
+			}
+		}
+
+		return result;
 	}
 
 	function getBigBowlName(year) {
-		return `The Big Bowl ${getBigBowlNumber(year)}`;
+		const bowlNumber = Number(year) - 2022;
+		return `The Big Bowl ${toRoman(bowlNumber)}`;
 	}
 
-	// Get the current team information for the Trophy Case
-	function getCurrentTeam(rosterID) {
-		if (!leagueTeamManagers) return null;
+	function openManager(rosterID) {
+		if (!rosterID) return;
 
-		const teams = Object.values(leagueTeamManagers).flat();
-
-		return teams.find(team => {
-			return String(team.rosterID) === String(rosterID);
-		});
-	}
-
-	// Get the manager name
-	function getManagerName(rosterID, seasonYear) {
-		const team = getTeamFromTeamManagers(
-			leagueTeamManagers,
-			rosterID,
-			seasonYear
-		);
-
-		if (!team) return '';
-
-		// Try the most common manager-name fields
-		if (team.managerName) return team.managerName;
-		if (team.manager) return team.manager;
-		if (team.ownerName) return team.ownerName;
-		if (team.owner) return team.owner;
-		if (team.username) return team.username;
-		if (team.displayName) return team.displayName;
-
-		return '';
-	}
-
-	// Get current team name instead of the historical name
-	function getCurrentTeamName(rosterID) {
-		const team = getCurrentTeam(rosterID);
-
-		if (team?.name) return team.name;
-
-		return getNestedTeamNamesFromTeamManagers(
-			leagueTeamManagers,
+		gotoManager({
 			year,
-			rosterID
-		);
-	}
-
-	// Get current team logo
-	function getCurrentTeamAvatar(rosterID) {
-		const team = getCurrentTeam(rosterID);
-
-		if (team?.avatar) return team.avatar;
-		if (team?.avatarURL) return team.avatarURL;
-
-		return getAvatarFromTeamManagers(
 			leagueTeamManagers,
-			rosterID,
-			year
-		);
-	}
-
-	// Get all seasons won by each team
-	function getWinningYears(rosterID) {
-		const winningYears = [];
-
-		if (!leagueTeamManagers) return winningYears;
-
-		// This component receives one podium at a time, so the current
-		// season is always included here.
-		if (String(rosterID) === String(champion)) {
-			winningYears.push(year);
-		}
-
-		return winningYears;
+			rosterID
+		});
 	}
 </script>
 
@@ -104,20 +66,15 @@
 	}
 
 	.awards {
-		display: block;
-		position: relative;
 		width: 100%;
-		z-index: 1;
-	}
-
-	.yearSection {
-		margin: 35px auto 45px;
 		max-width: 1000px;
+		margin: 0 auto;
+		padding: 0 15px 30px;
 	}
 
 	.yearHeader {
 		text-align: center;
-		margin-bottom: 20px;
+		margin: 30px 0 15px;
 	}
 
 	.yearHeader h2 {
@@ -126,37 +83,39 @@
 	}
 
 	.yearHeader p {
-		margin: 5px 0 0;
-		color: var(--g888);
+		margin: 6px 0 0;
+		color: #888;
 		font-size: 0.9em;
 	}
 
-	.bigBowlBanner {
+	.banner {
 		display: block;
 		width: 65%;
 		max-width: 450px;
-		margin: 20px auto;
+		margin: 18px auto 25px;
 	}
+
+	/* TOP THREE */
 
 	.podium {
 		display: grid;
 		grid-template-columns: 1fr 1.15fr 1fr;
-		align-items: end;
 		gap: 12px;
-		margin: 20px auto;
+		align-items: end;
 		max-width: 800px;
+		margin: 0 auto;
 	}
 
 	.placeCard {
-		text-align: center;
-		padding: 18px 12px;
 		background-color: var(--f3f3f3);
 		border: 1px solid var(--ddd);
+		padding: 18px 12px;
+		text-align: center;
+		cursor: pointer;
 		box-shadow:
 			0px 3px 3px -2px var(--boxShadowOne),
 			0px 3px 4px 0px var(--boxShadowTwo),
 			0px 1px 8px 0px var(--boxShadowThree);
-		cursor: pointer;
 		transition: transform 0.15s ease;
 	}
 
@@ -170,20 +129,20 @@
 	}
 
 	.placeNumber {
-		font-size: 1.4em;
-		font-weight: bold;
+		font-size: 1.15em;
+		font-weight: 700;
 		margin-bottom: 10px;
 	}
 
 	.teamLogo {
 		display: block;
-		width: 85px;
-		height: 85px;
+		width: 80px;
+		height: 80px;
 		object-fit: contain;
 		margin: 0 auto 10px;
 		border-radius: 50%;
-		background-color: var(--fff);
 		border: 1px solid var(--bbb);
+		background-color: var(--fff);
 	}
 
 	.firstCard .teamLogo {
@@ -192,43 +151,46 @@
 	}
 
 	.teamName {
-		font-weight: 600;
-		font-size: 1em;
+		font-size: 0.95em;
+		font-weight: 700;
+		line-height: 1.2;
 	}
 
 	.managerName {
-		margin-top: 4px;
+		margin-top: 5px;
 		color: #888;
-		font-size: 0.82em;
+		font-size: 0.8em;
 	}
 
+	/* REGULAR SEASON */
+
 	.regularSeason {
-		margin: 35px auto;
 		max-width: 650px;
-		text-align: center;
-		padding: 20px;
-		border: 1px solid var(--ddd);
+		margin: 25px auto 0;
+		padding: 18px;
 		background-color: var(--f3f3f3);
+		border: 1px solid var(--ddd);
+		text-align: center;
 	}
 
 	.regularSeason h3 {
 		margin: 0 0 12px;
-		font-size: 1.15em;
+		font-size: 1.05em;
 	}
 
 	.regularTeam {
 		display: inline-flex;
 		align-items: center;
-		gap: 12px;
-		cursor: pointer;
-		padding: 10px 18px;
+		gap: 10px;
+		padding: 8px 14px;
 		background-color: var(--fff);
 		border: 1px solid var(--ddd);
+		cursor: pointer;
 	}
 
 	.regularTeam img {
-		width: 55px;
-		height: 55px;
+		width: 45px;
+		height: 45px;
 		object-fit: contain;
 		border-radius: 50%;
 	}
@@ -237,20 +199,24 @@
 		text-align: left;
 	}
 
-	.regularInfo strong {
-		display: block;
+	.regularName {
+		font-size: 0.9em;
+		font-weight: 700;
 	}
 
-	.regularInfo span {
+	.regularManager {
+		margin-top: 2px;
 		color: #888;
-		font-size: 0.8em;
+		font-size: 0.75em;
 	}
+
+	/* DIVISION CHAMPIONS */
 
 	.divisions {
 		display: flex;
 		justify-content: center;
 		gap: 30px;
-		margin: 30px auto;
+		margin: 25px auto 0;
 	}
 
 	.division {
@@ -259,13 +225,13 @@
 	}
 
 	.division h4 {
-		margin: 0 0 10px;
-		font-size: 0.9em;
+		margin: 0 0 8px;
+		font-size: 0.85em;
 	}
 
 	.division img {
-		width: 65px;
-		height: 65px;
+		width: 60px;
+		height: 60px;
 		object-fit: contain;
 		border-radius: 50%;
 		border: 1px solid var(--bbb);
@@ -274,24 +240,27 @@
 	}
 
 	.divisionName {
-		margin-top: 7px;
+		margin-top: 5px;
+		font-size: 0.82em;
 		font-weight: 600;
-		font-size: 0.85em;
 	}
 
 	.divisionManager {
+		margin-top: 2px;
 		color: #888;
-		font-size: 0.75em;
-		margin-top: 3px;
+		font-size: 0.72em;
 	}
 
+	/* MOBILE */
+
 	@media (max-width: 650px) {
-		.yearSection {
-			margin: 25px auto 35px;
-			width: 95%;
+
+		.awards {
+			padding-left: 10px;
+			padding-right: 10px;
 		}
 
-		.bigBowlBanner {
+		.banner {
 			width: 85%;
 		}
 
@@ -303,10 +272,6 @@
 		.firstCard {
 			grid-column: 1 / -1;
 			order: -1;
-		}
-
-		.placeCard {
-			padding: 14px 8px;
 		}
 
 		.teamLogo {
@@ -324,257 +289,314 @@
 			gap: 20px;
 		}
 	}
+
+	@media (max-width: 400px) {
+
+		.podium {
+			gap: 8px;
+		}
+
+		.placeCard {
+			padding: 12px 6px;
+		}
+
+		.placeNumber {
+			font-size: 0.95em;
+		}
+
+		.teamLogo {
+			width: 60px;
+			height: 60px;
+		}
+
+		.firstCard .teamLogo {
+			width: 80px;
+			height: 80px;
+		}
+
+		.teamName {
+			font-size: 0.8em;
+		}
+
+		.managerName {
+			font-size: 0.7em;
+		}
+	}
 </style>
+
 
 <div class="awards">
 
-	<div class="yearSection">
+	<!-- YEAR / BIG BOWL -->
 
-		<div class="yearHeader">
-			<h2>{year} — {getBigBowlName(year)}</h2>
-			<p>Championship Finalists</p>
-		</div>
+	<div class="yearHeader">
 
-		<img
-			src="/TBB Champ NEW.png"
-			class="bigBowlBanner"
-			alt="The Big Bowl Champion"
-		/>
+		<h2>
+			{year} — {getBigBowlName(year)}
+		</h2>
 
-		<div class="podium">
+		<p>
+			Championship Finalists
+		</p>
 
-			<!-- 2ND PLACE -->
-			<div
-				class="placeCard"
-				onclick={() =>
-					gotoManager({
-						year,
-						leagueTeamManagers,
-						rosterID: second
-					})
+	</div>
+
+
+	<img
+		src="/TBB Champ NEW.png"
+		class="banner"
+		alt="The Big Bowl Champion"
+	/>
+
+
+	<!-- TOP THREE -->
+
+	<div class="podium">
+
+		<!-- 2ND PLACE -->
+
+		<div
+			class="placeCard"
+			role="button"
+			tabindex="0"
+			onclick={() => openManager(second)}
+			onkeydown={(event) => {
+				if (event.key === 'Enter' || event.key === ' ') {
+					openManager(second);
 				}
-			>
-				<div class="placeNumber">🥈 2nd Place</div>
+			}}
+		>
 
-				<img
-					src={getAvatarFromTeamManagers(
-						leagueTeamManagers,
-						second,
-						year
-					)}
-					class="teamLogo"
-					alt="2nd place team"
-				/>
-
-				<div class="teamName">
-					{@html getNestedTeamNamesFromTeamManagers(
-						leagueTeamManagers,
-						year,
-						second
-					)}
-				</div>
-
-				<div class="managerName">
-					{getManagerName(second, year)}
-				</div>
+			<div class="placeNumber">
+				🥈 2nd Place
 			</div>
 
+			<img
+				src={getAvatarFromTeamManagers(
+					leagueTeamManagers,
+					second,
+					year
+				)}
+				class="teamLogo"
+				alt="2nd place"
+			/>
 
-			<!-- CHAMPION -->
-			<div
-				class="placeCard firstCard"
-				onclick={() =>
-					gotoManager({
-						year,
-						leagueTeamManagers,
-						rosterID: champion
-					})
-				}
-			>
-				<div class="placeNumber">🏆 Champion</div>
-
-				<img
-					src={getAvatarFromTeamManagers(
-						leagueTeamManagers,
-						champion,
-						year
-					)}
-					class="teamLogo"
-					alt="champion"
-				/>
-
-				<div class="teamName">
-					{@html getNestedTeamNamesFromTeamManagers(
-						leagueTeamManagers,
-						year,
-						champion
-					)}
-				</div>
-
-				<div class="managerName">
-					{getManagerName(champion, year)}
-				</div>
+			<div class="teamName">
+				{@html getNestedTeamNamesFromTeamManagers(
+					leagueTeamManagers,
+					year,
+					second
+				)}
 			</div>
 
-
-			<!-- 3RD PLACE -->
-			<div
-				class="placeCard"
-				onclick={() =>
-					gotoManager({
-						year,
-						leagueTeamManagers,
-						rosterID: third
-					})
-				}
-			>
-				<div class="placeNumber">🥉 3rd Place</div>
-
-				<img
-					src={getAvatarFromTeamManagers(
-						leagueTeamManagers,
-						third,
-						year
-					)}
-					class="teamLogo"
-					alt="3rd place team"
-				/>
-
-				<div class="teamName">
-					{@html getNestedTeamNamesFromTeamManagers(
-						leagueTeamManagers,
-						year,
-						third
-					)}
-				</div>
-
-				<div class="managerName">
-					{getManagerName(third, year)}
-				</div>
+			<div class="managerName">
+				<!-- Manager name will be added once we identify
+				     the existing manager field in your data. -->
 			</div>
 
 		</div>
 
 
-		<!-- REGULAR SEASON CHAMPION -->
-		{#if divisions?.length}
+		<!-- CHAMPION -->
 
-			<div class="regularSeason">
+		<div
+			class="placeCard firstCard"
+			role="button"
+			tabindex="0"
+			onclick={() => openManager(champion)}
+			onkeydown={(event) => {
+				if (event.key === 'Enter' || event.key === ' ') {
+					openManager(champion);
+				}
+			}}
+		>
 
-				<h3>📈 Regular Season Champion</h3>
+			<div class="placeNumber">
+				🏆 Champion
+			</div>
 
-				{#each divisions as division}
+			<img
+				src={getAvatarFromTeamManagers(
+					leagueTeamManagers,
+					champion,
+					year
+				)}
+				class="teamLogo"
+				alt="Big Bowl champion"
+			/>
 
-					{#if division.rosterID}
+			<div class="teamName">
+				{@html getNestedTeamNamesFromTeamManagers(
+					leagueTeamManagers,
+					year,
+					champion
+				)}
+			</div>
 
-						<div
-							class="regularTeam"
-							onclick={() =>
-								gotoManager({
-									year,
-									leagueTeamManagers,
-									rosterID: division.rosterID
-								})
+			<div class="managerName">
+				<!-- Manager name will be added once we identify
+				     the existing manager field in your data. -->
+			</div>
+
+		</div>
+
+
+		<!-- 3RD PLACE -->
+
+		<div
+			class="placeCard"
+			role="button"
+			tabindex="0"
+			onclick={() => openManager(third)}
+			onkeydown={(event) => {
+				if (event.key === 'Enter' || event.key === ' ') {
+					openManager(third);
+				}
+			}}
+		>
+
+			<div class="placeNumber">
+				🥉 3rd Place
+			</div>
+
+			<img
+				src={getAvatarFromTeamManagers(
+					leagueTeamManagers,
+					third,
+					year
+				)}
+				class="teamLogo"
+				alt="3rd place"
+			/>
+
+			<div class="teamName">
+				{@html getNestedTeamNamesFromTeamManagers(
+					leagueTeamManagers,
+					year,
+					third
+				)}
+			</div>
+
+			<div class="managerName">
+				<!-- Manager name will be added once we identify
+				     the existing manager field in your data. -->
+			</div>
+
+		</div>
+
+	</div>
+
+
+	<!-- REGULAR SEASON CHAMPION -->
+
+	{#if divisions?.length}
+
+		<div class="regularSeason">
+
+			<h3>
+				📈 Regular Season Champion
+			</h3>
+
+			{#each divisions as division}
+
+				{#if division.rosterID}
+
+					<div
+						class="regularTeam"
+						role="button"
+						tabindex="0"
+						onclick={() => openManager(division.rosterID)}
+						onkeydown={(event) => {
+							if (event.key === 'Enter' || event.key === ' ') {
+								openManager(division.rosterID);
 							}
-						>
+						}}
+					>
 
-							<img
-								src={getAvatarFromTeamManagers(
-									leagueTeamManagers,
-									division.rosterID,
-									year
-								)}
-								alt="Regular season champion"
-							/>
+						<img
+							src={getAvatarFromTeamManagers(
+								leagueTeamManagers,
+								division.rosterID,
+								year
+							)}
+							alt="Regular season champion"
+						/>
 
-							<div class="regularInfo">
+						<div class="regularInfo">
 
-								<strong>
-									{getNestedTeamNamesFromTeamManagers(
-										leagueTeamManagers,
-										year,
-										division.rosterID
-									)}
-								</strong>
-
-								<span>
-									{getManagerName(
-										division.rosterID,
-										year
-									)}
-								</span>
-
-							</div>
-
-						</div>
-
-					{/if}
-
-				{/each}
-
-			</div>
-
-		{/if}
-
-
-		<!-- DIVISION WINNERS -->
-		{#if divisions?.length > 1}
-
-			<div class="divisions">
-
-				{#each divisions as division}
-
-					{#if division.rosterID}
-
-						<div class="division">
-
-							<h4>
-								{division.name
-									? `${division.name} Division`
-									: 'Division Winner'}
-							</h4>
-
-							<img
-								src={getAvatarFromTeamManagers(
-									leagueTeamManagers,
-									division.rosterID,
-									year
-								)}
-								alt="Division winner"
-								onclick={() =>
-									gotoManager({
-										year,
-										leagueTeamManagers,
-										rosterID: division.rosterID
-									})
-								}
-							/>
-
-							<div class="divisionName">
-								{getNestedTeamNamesFromTeamManagers(
+							<div class="regularName">
+								{@html getNestedTeamNamesFromTeamManagers(
 									leagueTeamManagers,
 									year,
 									division.rosterID
 								)}
 							</div>
 
-							<div class="divisionManager">
-								{getManagerName(
-									division.rosterID,
-									year
-								)}
+							<div class="regularManager">
+								<!-- Manager name goes here -->
 							</div>
 
 						</div>
 
-					{/if}
+					</div>
 
-				{/each}
+				{/if}
 
-			</div>
+			{/each}
 
-		{/if}
+		</div>
 
-	</div>
+	{/if}
+
+
+	<!-- DIVISION CHAMPIONS -->
+
+	{#if divisions?.length > 1}
+
+		<div class="divisions">
+
+			{#each divisions as division}
+
+				{#if division.rosterID}
+
+					<div class="division">
+
+						<h4>
+							{division.name
+								? `${division.name} Division`
+								: 'Division Winner'}
+						</h4>
+
+						<img
+							src={getAvatarFromTeamManagers(
+								leagueTeamManagers,
+								division.rosterID,
+								year
+							)}
+							alt="Division winner"
+							onclick={() => openManager(division.rosterID)}
+						/>
+
+						<div class="divisionName">
+							{@html getNestedTeamNamesFromTeamManagers(
+								leagueTeamManagers,
+								year,
+								division.rosterID
+							)}
+						</div>
+
+						<div class="divisionManager">
+							<!-- Manager name goes here -->
+						</div>
+
+					</div>
+
+				{/if}
+
+			{/each}
+
+		</div>
+
+	{/if}
 
 </div>
