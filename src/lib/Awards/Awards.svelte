@@ -2,7 +2,8 @@
 	import { gotoManager } from '$lib/utils/helper';
 	import {
 		getAvatarFromTeamManagers,
-		getNestedTeamNamesFromTeamManagers
+		getNestedTeamNamesFromTeamManagers,
+		renderManagerNames
 	} from '$lib/utils/helperFunctions/universalFunctions';
 
 	export let podium, leagueTeamManagers;
@@ -10,10 +11,11 @@
 	const { year, champion, second, third, divisions } = podium;
 
 	/*
+	 * Big Bowl numbering:
 	 * 2023 = The Big Bowl I
 	 * 2024 = The Big Bowl II
 	 * 2025 = The Big Bowl III
-	 * etc.
+	 * 2026 = The Big Bowl IV
 	 */
 	function toRoman(number) {
 		const values = [
@@ -69,12 +71,16 @@
 		width: 100%;
 		max-width: 1000px;
 		margin: 0 auto;
-		padding: 0 15px 30px;
+		padding: 0 15px 35px;
+	}
+
+	.yearSection {
+		margin: 30px auto 45px;
 	}
 
 	.yearHeader {
 		text-align: center;
-		margin: 30px 0 15px;
+		margin-bottom: 12px;
 	}
 
 	.yearHeader h2 {
@@ -166,7 +172,7 @@
 
 	.regularSeason {
 		max-width: 650px;
-		margin: 25px auto 0;
+		margin: 28px auto 0;
 		padding: 18px;
 		background-color: var(--f3f3f3);
 		border: 1px solid var(--ddd);
@@ -251,8 +257,6 @@
 		font-size: 0.72em;
 	}
 
-	/* MOBILE */
-
 	@media (max-width: 650px) {
 
 		.awards {
@@ -327,204 +331,274 @@
 
 <div class="awards">
 
-	<!-- YEAR / BIG BOWL -->
+	<div class="yearSection">
 
-	<div class="yearHeader">
+		<!-- YEAR / BIG BOWL -->
 
-		<h2>
-			{year} — {getBigBowlName(year)}
-		</h2>
+		<div class="yearHeader">
 
-		<p>
-			Championship Finalists
-		</p>
+			<h2>
+				{year} — {getBigBowlName(year)}
+			</h2>
 
-	</div>
+			<p>
+				Championship Finalists
+			</p>
 
-
-	<img
-		src="/TBB Champ NEW.png"
-		class="banner"
-		alt="The Big Bowl Champion"
-	/>
+		</div>
 
 
-	<!-- TOP THREE -->
+		<!-- BIG BOWL BANNER -->
 
-	<div class="podium">
+		<img
+			src="/TBB Champ NEW.png"
+			class="banner"
+			alt="The Big Bowl Champion"
+		/>
 
-		<!-- 2ND PLACE -->
 
-		<div
-			class="placeCard"
-			role="button"
-			tabindex="0"
-			onclick={() => openManager(second)}
-			onkeydown={(event) => {
-				if (event.key === 'Enter' || event.key === ' ') {
-					openManager(second);
-				}
-			}}
-		>
+		<!-- TOP THREE -->
 
-			<div class="placeNumber">
-				🥈 2nd Place
+		<div class="podium">
+
+			<!-- 2ND PLACE -->
+
+			<div
+				class="placeCard"
+				role="button"
+				tabindex="0"
+				onclick={() => openManager(second)}
+				onkeydown={(event) => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						openManager(second);
+					}
+				}}
+			>
+
+				<div class="placeNumber">
+					🥈 2nd Place
+				</div>
+
+				<img
+					src={getAvatarFromTeamManagers(
+						leagueTeamManagers,
+						second,
+						year
+					)}
+					class="teamLogo"
+					alt="2nd place"
+				/>
+
+				<div class="teamName">
+					{@html getNestedTeamNamesFromTeamManagers(
+						leagueTeamManagers,
+						year,
+						second
+					)}
+				</div>
+
+				<div class="managerName">
+					{renderManagerNames(
+						leagueTeamManagers,
+						second,
+						year
+					)}
+				</div>
+
 			</div>
 
-			<img
-				src={getAvatarFromTeamManagers(
-					leagueTeamManagers,
-					second,
-					year
-				)}
-				class="teamLogo"
-				alt="2nd place"
-			/>
 
-			<div class="teamName">
-				{@html getNestedTeamNamesFromTeamManagers(
-					leagueTeamManagers,
-					year,
-					second
-				)}
+			<!-- CHAMPION -->
+
+			<div
+				class="placeCard firstCard"
+				role="button"
+				tabindex="0"
+				onclick={() => openManager(champion)}
+				onkeydown={(event) => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						openManager(champion);
+					}
+				}}
+			>
+
+				<div class="placeNumber">
+					🏆 Champion
+				</div>
+
+				<img
+					src={getAvatarFromTeamManagers(
+						leagueTeamManagers,
+						champion,
+						year
+					)}
+					class="teamLogo"
+					alt="Big Bowl champion"
+				/>
+
+				<div class="teamName">
+					{@html getNestedTeamNamesFromTeamManagers(
+						leagueTeamManagers,
+						year,
+						champion
+					)}
+				</div>
+
+				<div class="managerName">
+					{renderManagerNames(
+						leagueTeamManagers,
+						champion,
+						year
+					)}
+				</div>
+
 			</div>
 
-			<div class="managerName">
-				<!-- Manager name will be added once we identify
-				     the existing manager field in your data. -->
+
+			<!-- 3RD PLACE -->
+
+			<div
+				class="placeCard"
+				role="button"
+				tabindex="0"
+				onclick={() => openManager(third)}
+				onkeydown={(event) => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						openManager(third);
+					}
+				}}
+			>
+
+				<div class="placeNumber">
+					🥉 3rd Place
+				</div>
+
+				<img
+					src={getAvatarFromTeamManagers(
+						leagueTeamManagers,
+						third,
+						year
+					)}
+					class="teamLogo"
+					alt="3rd place"
+				/>
+
+				<div class="teamName">
+					{@html getNestedTeamNamesFromTeamManagers(
+						leagueTeamManagers,
+						year,
+						third
+					)}
+				</div>
+
+				<div class="managerName">
+					{renderManagerNames(
+						leagueTeamManagers,
+						third,
+						year
+					)}
+				</div>
+
 			</div>
 
 		</div>
 
 
-		<!-- CHAMPION -->
+		<!-- REGULAR SEASON CHAMPION -->
 
-		<div
-			class="placeCard firstCard"
-			role="button"
-			tabindex="0"
-			onclick={() => openManager(champion)}
-			onkeydown={(event) => {
-				if (event.key === 'Enter' || event.key === ' ') {
-					openManager(champion);
-				}
-			}}
-		>
+		{#if divisions?.length}
 
-			<div class="placeNumber">
-				🏆 Champion
+			<div class="regularSeason">
+
+				<h3>
+					📈 Regular Season Champion
+				</h3>
+
+				{#each divisions as division}
+
+					{#if division.rosterID}
+
+						<div
+							class="regularTeam"
+							role="button"
+							tabindex="0"
+							onclick={() => openManager(division.rosterID)}
+							onkeydown={(event) => {
+								if (event.key === 'Enter' || event.key === ' ') {
+									openManager(division.rosterID);
+								}
+							}}
+						>
+
+							<img
+								src={getAvatarFromTeamManagers(
+									leagueTeamManagers,
+									division.rosterID,
+									year
+								)}
+								alt="Regular season champion"
+							/>
+
+							<div class="regularInfo">
+
+								<div class="regularName">
+									{@html getNestedTeamNamesFromTeamManagers(
+										leagueTeamManagers,
+										year,
+										division.rosterID
+									)}
+								</div>
+
+								<div class="regularManager">
+									{renderManagerNames(
+										leagueTeamManagers,
+										division.rosterID,
+										year
+									)}
+								</div>
+
+							</div>
+
+						</div>
+
+					{/if}
+
+				{/each}
+
 			</div>
 
-			<img
-				src={getAvatarFromTeamManagers(
-					leagueTeamManagers,
-					champion,
-					year
-				)}
-				class="teamLogo"
-				alt="Big Bowl champion"
-			/>
-
-			<div class="teamName">
-				{@html getNestedTeamNamesFromTeamManagers(
-					leagueTeamManagers,
-					year,
-					champion
-				)}
-			</div>
-
-			<div class="managerName">
-				<!-- Manager name will be added once we identify
-				     the existing manager field in your data. -->
-			</div>
-
-		</div>
+		{/if}
 
 
-		<!-- 3RD PLACE -->
+		<!-- DIVISION CHAMPIONS -->
 
-		<div
-			class="placeCard"
-			role="button"
-			tabindex="0"
-			onclick={() => openManager(third)}
-			onkeydown={(event) => {
-				if (event.key === 'Enter' || event.key === ' ') {
-					openManager(third);
-				}
-			}}
-		>
+		{#if divisions?.length > 1}
 
-			<div class="placeNumber">
-				🥉 3rd Place
-			</div>
+			<div class="divisions">
 
-			<img
-				src={getAvatarFromTeamManagers(
-					leagueTeamManagers,
-					third,
-					year
-				)}
-				class="teamLogo"
-				alt="3rd place"
-			/>
+				{#each divisions as division}
 
-			<div class="teamName">
-				{@html getNestedTeamNamesFromTeamManagers(
-					leagueTeamManagers,
-					year,
-					third
-				)}
-			</div>
+					{#if division.rosterID}
 
-			<div class="managerName">
-				<!-- Manager name will be added once we identify
-				     the existing manager field in your data. -->
-			</div>
+						<div class="division">
 
-		</div>
+							<h4>
+								{division.name
+									? `${division.name} Division`
+									: 'Division Winner'}
+							</h4>
 
-	</div>
+							<img
+								src={getAvatarFromTeamManagers(
+									leagueTeamManagers,
+									division.rosterID,
+									year
+								)}
+								alt="Division winner"
+								onclick={() => openManager(division.rosterID)}
+							/>
 
-
-	<!-- REGULAR SEASON CHAMPION -->
-
-	{#if divisions?.length}
-
-		<div class="regularSeason">
-
-			<h3>
-				📈 Regular Season Champion
-			</h3>
-
-			{#each divisions as division}
-
-				{#if division.rosterID}
-
-					<div
-						class="regularTeam"
-						role="button"
-						tabindex="0"
-						onclick={() => openManager(division.rosterID)}
-						onkeydown={(event) => {
-							if (event.key === 'Enter' || event.key === ' ') {
-								openManager(division.rosterID);
-							}
-						}}
-					>
-
-						<img
-							src={getAvatarFromTeamManagers(
-								leagueTeamManagers,
-								division.rosterID,
-								year
-							)}
-							alt="Regular season champion"
-						/>
-
-						<div class="regularInfo">
-
-							<div class="regularName">
+							<div class="divisionName">
 								{@html getNestedTeamNamesFromTeamManagers(
 									leagueTeamManagers,
 									year,
@@ -532,71 +606,24 @@
 								)}
 							</div>
 
-							<div class="regularManager">
-								<!-- Manager name goes here -->
+							<div class="divisionManager">
+								{renderManagerNames(
+									leagueTeamManagers,
+									division.rosterID,
+									year
+								)}
 							</div>
 
 						</div>
 
-					</div>
+					{/if}
 
-				{/if}
+				{/each}
 
-			{/each}
+			</div>
 
-		</div>
+		{/if}
 
-	{/if}
-
-
-	<!-- DIVISION CHAMPIONS -->
-
-	{#if divisions?.length > 1}
-
-		<div class="divisions">
-
-			{#each divisions as division}
-
-				{#if division.rosterID}
-
-					<div class="division">
-
-						<h4>
-							{division.name
-								? `${division.name} Division`
-								: 'Division Winner'}
-						</h4>
-
-						<img
-							src={getAvatarFromTeamManagers(
-								leagueTeamManagers,
-								division.rosterID,
-								year
-							)}
-							alt="Division winner"
-							onclick={() => openManager(division.rosterID)}
-						/>
-
-						<div class="divisionName">
-							{@html getNestedTeamNamesFromTeamManagers(
-								leagueTeamManagers,
-								year,
-								division.rosterID
-							)}
-						</div>
-
-						<div class="divisionManager">
-							<!-- Manager name goes here -->
-						</div>
-
-					</div>
-
-				{/if}
-
-			{/each}
-
-		</div>
-
-	{/if}
+	</div>
 
 </div>
