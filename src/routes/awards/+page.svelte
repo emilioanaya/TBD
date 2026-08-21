@@ -29,7 +29,6 @@
 
 
 	function getChampions(podiums) {
-
 		const champions = {};
 
 		for (const podium of podiums) {
@@ -39,12 +38,10 @@
 			const rosterID = String(podium.champion);
 
 			if (!champions[rosterID]) {
-
 				champions[rosterID] = {
 					rosterID: podium.champion,
 					years: []
 				};
-
 			}
 
 			champions[rosterID].years.push(
@@ -70,11 +67,9 @@
 
 
 	function getBigBowlText(count) {
-
 		return count === 1
 			? '1 Big Bowl'
 			: `${count} Big Bowls`;
-
 	}
 </script>
 
@@ -83,37 +78,28 @@
 
 	.awardsPage {
 		display: block;
-
 		width: 95%;
 		max-width: 1000px;
-
 		margin: 30px auto;
-
 		position: relative;
 		z-index: 1;
-
 		overflow-y: hidden;
 	}
 
 
 	.loading {
 		display: block;
-
 		width: 85%;
 		max-width: 500px;
-
 		margin: 80px auto;
 	}
 
 
 	.nothingYet {
 		display: block;
-
 		width: 85%;
 		max-width: 500px;
-
 		margin: 80px auto;
-
 		text-align: center;
 	}
 
@@ -129,31 +115,25 @@
 
 	.trophyHeader {
 		text-align: center;
-
-		margin-bottom: 18px;
+		margin-bottom: 15px;
 	}
 
 
 	.trophyHeader h1 {
 		margin: 0;
-
 		font-size: 1.7em;
 	}
 
 
 	.trophyHeader p {
-		margin: 5px 0 0;
-
+		margin: 4px 0 0;
 		color: #888;
-
-		font-size: 0.88em;
+		font-size: 0.85em;
 	}
 
 
 	.trophyList {
-
 		border: 1px solid var(--ddd);
-
 		background-color: var(--f3f3f3);
 
 		box-shadow:
@@ -164,16 +144,13 @@
 
 
 	.trophyRow {
-
 		display: grid;
-
-		grid-template-columns: 75px 1fr auto;
-
+		grid-template-columns: 65px 1fr auto;
 		align-items: center;
 
-		gap: 15px;
+		gap: 12px;
 
-		padding: 14px 18px;
+		padding: 9px 15px;
 
 		background-color: var(--fff);
 
@@ -189,9 +166,8 @@
 	/* CURRENT TEAM LOGO */
 
 	.trophyTeamLogo {
-
-		width: 62px;
-		height: 62px;
+		width: 54px;
+		height: 54px;
 
 		object-fit: contain;
 
@@ -207,67 +183,82 @@
 
 	.trophyTeam {
 		min-width: 0;
+
+		line-height: 1.1;
 	}
 
 
 	.teamName {
-
-		font-size: 1em;
+		font-size: 0.95em;
 
 		font-weight: 700;
 
-		line-height: 1.2;
+		line-height: 1.1;
 	}
 
 
 	.managerName {
-
-		margin-top: 4px;
-
-		color: #888;
-
-		font-size: 0.8em;
-	}
-
-
-	.winningYears {
-
-		margin-top: 5px;
+		margin-top: 2px;
 
 		color: #888;
 
 		font-size: 0.75em;
+
+		line-height: 1.1;
 	}
 
 
-	/* TROPHY + COUNT */
+	.winningYears {
+		margin-top: 2px;
+
+		color: #888;
+
+		font-size: 0.7em;
+
+		line-height: 1.1;
+	}
+
+
+	/* =========================
+	   TROPHY GRAPHICS
+	   ========================= */
 
 	.trophyCount {
-
 		display: flex;
 
 		align-items: center;
 
 		justify-content: flex-end;
 
-		gap: 8px;
-
-		text-align: right;
+		gap: 3px;
 
 		white-space: nowrap;
 
 		font-weight: 700;
 
-		font-size: 0.95em;
+		font-size: 0.85em;
+	}
+
+
+	.trophyImages {
+		display: flex;
+
+		align-items: center;
+
+		gap: 2px;
 	}
 
 
 	.trophyIcon {
-
-		width: 48px;
-		height: 48px;
+		width: 38px;
+		height: 38px;
 
 		object-fit: contain;
+	}
+
+
+	.trophyText {
+		margin-left: 5px;
 	}
 
 
@@ -276,7 +267,6 @@
 	   ========================= */
 
 	.historyHeader {
-
 		text-align: center;
 
 		margin: 40px 0 20px;
@@ -284,7 +274,6 @@
 
 
 	.historyHeader h2 {
-
 		margin: 0;
 
 		font-size: 1.5em;
@@ -292,7 +281,6 @@
 
 
 	.historyHeader p {
-
 		margin: 5px 0 0;
 
 		color: #888;
@@ -308,95 +296,82 @@
 	@media (max-width: 600px) {
 
 		.awardsPage {
-
 			width: 94%;
-
 			margin-top: 22px;
 		}
 
 
 		.trophyRow {
-
-			grid-template-columns: 60px 1fr auto;
+			grid-template-columns: 60px 1fr;
 
 			gap: 10px;
 
-			padding: 12px;
+			padding: 8px 11px;
 		}
 
 
 		.trophyTeamLogo {
-
-			width: 52px;
-			height: 52px;
+			width: 50px;
+			height: 50px;
 		}
 
 
 		.teamName {
-
-			font-size: 0.9em;
+			font-size: 0.88em;
 		}
 
 
 		.managerName {
-
-			font-size: 0.72em;
+			font-size: 0.7em;
 		}
 
 
 		.winningYears {
-
-			font-size: 0.68em;
+			font-size: 0.66em;
 		}
 
 
 		.trophyCount {
-
-			font-size: 0.8em;
-		}
-
-
-		.trophyIcon {
-
-			width: 40px;
-			height: 40px;
-		}
-	}
-
-
-	@media (max-width: 430px) {
-
-		.trophyRow {
-
-			grid-template-columns: 52px 1fr;
-
-			gap: 9px;
-		}
-
-
-		.trophyTeamLogo {
-
-			width: 45px;
-			height: 45px;
-		}
-
-
-		.trophyCount {
-
 			grid-column: 2;
 
 			justify-content: flex-start;
 
-			text-align: left;
-
 			margin-top: -3px;
+
+			font-size: 0.75em;
 		}
 
 
 		.trophyIcon {
+			width: 32px;
+			height: 32px;
+		}
 
-			width: 36px;
-			height: 36px;
+
+		.trophyText {
+			margin-left: 4px;
+		}
+	}
+
+
+	@media (max-width: 400px) {
+
+		.trophyRow {
+			grid-template-columns: 52px 1fr;
+
+			gap: 8px;
+		}
+
+
+		.trophyTeamLogo {
+			width: 44px;
+			height: 44px;
+		}
+
+
+		.trophyIcon {
+			width: 29px;
+			height: 29px;
 		}
 	}
 
@@ -473,7 +448,7 @@
 							/>
 
 
-							<!-- CURRENT TEAM NAME + MANAGER -->
+							<!-- CURRENT TEAM NAME / MANAGER / YEARS -->
 
 							<div class="trophyTeam">
 
@@ -510,25 +485,34 @@
 							</div>
 
 
-							<!-- TROPHY COUNT -->
+							<!-- TROPHIES -->
 
 							<div class="trophyCount">
 
 
-								<img
-									src="/TBB Trophy.png"
-									class="trophyIcon"
-									alt="Big Bowl trophy"
-								/>
+								<div class="trophyImages">
+
+									{#each champion.years as year}
+
+										<img
+											src="/TBB Trophy.png"
+											class="trophyIcon"
+											alt="Big Bowl trophy"
+											title={year}
+										/>
+
+									{/each}
+
+								</div>
 
 
-								<span>
+								<div class="trophyText">
 
 									{getBigBowlText(
 										champion.years.length
 									)}
 
-								</span>
+								</div>
 
 
 							</div>
@@ -562,8 +546,6 @@
 
 			</div>
 
-
-			<!-- EACH SEASON -->
 
 			{#each podiums as podium}
 
