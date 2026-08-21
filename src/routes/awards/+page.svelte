@@ -1,63 +1,33 @@
 <script>
 	import { Awards } from '$lib/components';
 	import { waitForAll } from '$lib/utils/helper';
-	import { getAvatarFromTeamManagers, renderManagerNames } from '$lib/utils/helperFunctions/universalFunctions';
+	import {
+		getAvatarFromTeamManagers,
+		renderManagerNames
+	} from '$lib/utils/helperFunctions/universalFunctions';
 	import LinearProgress from '@smui/linear-progress';
 
 	export let data;
 
 	const { awardsData, teamManagersData } = data;
 
-	function getBigBowlNumber(year) {
-		return Number(year) - 2022;
-	}
-
-	function toRoman(number) {
-		const values = [
-			[1000, 'M'],
-			[900, 'CM'],
-			[500, 'D'],
-			[400, 'CD'],
-			[100, 'C'],
-			[90, 'XC'],
-			[50, 'L'],
-			[40, 'XL'],
-			[10, 'X'],
-			[9, 'IX'],
-			[5, 'V'],
-			[4, 'IV'],
-			[1, 'I']
-		];
-
-		let result = '';
-
-		for (const [value, numeral] of values) {
-			while (number >= value) {
-				result += numeral;
-				number -= value;
-			}
-		}
-
-		return result;
-	}
-
-	function getBigBowlName(year) {
-		return `The Big Bowl ${toRoman(getBigBowlNumber(year))}`;
-	}
-
-	function getCurrentTeamName(leagueTeamManagers, rosterID) {
-		if (!leagueTeamManagers || !rosterID) return '';
+	function getCurrentTeam(leagueTeamManagers, rosterID) {
+		if (!leagueTeamManagers || !rosterID) return null;
 
 		const teams = Object.values(leagueTeamManagers).flat();
 
-		const team = teams.find(
+		return teams.find(
 			team => String(team.rosterID) === String(rosterID)
 		);
-
-		return team?.name || '';
 	}
 
-	function getCurrentTeamAvatar(leagueTeamManagers, rosterID, year) {
+	function getCurrentTeamName(leagueTeamManagers, rosterID) {
+		const team = getCurrentTeam(leagueTeamManagers, rosterID);
+
+		return team?.name || 'Team';
+	}
+
+	function getCurrentTeamLogo(leagueTeamManagers, rosterID, year) {
 		return getAvatarFromTeamManagers(
 			leagueTeamManagers,
 			rosterID,
@@ -65,34 +35,48 @@
 		);
 	}
 
-	function getAllChampions(podiums) {
+	function getChampions(podiums) {
 		const champions = {};
 
 		for (const podium of podiums) {
 			if (!podium.champion) continue;
 
-			if (!champions[podium.champion]) {
-				champions[podium.champion] = {
+			const rosterID = String(podium.champion);
+
+			if (!champions[rosterID]) {
+				champions[rosterID] = {
 					rosterID: podium.champion,
 					years: []
 				};
 			}
 
-			champions[podium.champion].years.push(podium.year);
+			champions[rosterID].years.push(podium.year);
 		}
 
-		return Object.values(champions).sort(
-			(a, b) => b.years.length - a.years.length
-		);
+		return Object.values(champions).sort((a, b) => {
+			if (b.years.length !== a.years.length) {
+				return b.years.length - a.years.length;
+			}
+
+			return Math.min(...a.years) - Math.min(...b.years);
+		});
+	}
+
+	function getBigBowlText(count) {
+		return count === 1
+			? '1 Big Bowl'
+			: `${count} Big Bowls`;
 	}
 </script>
 
 <style>
 	.awardsPage {
+		display: block;
 		width: 95%;
 		max-width: 1000px;
-		margin: 0 auto;
-		padding: 30px 0 50px;
+		margin: 30px auto;
+		position: relative;
+		z-index: 1;
 	}
 
 	.loading {
@@ -103,96 +87,110 @@
 	}
 
 	.nothingYet {
-		text-align: center;
+		display: block;
+		width: 85%;
+		max-width: 500px;
 		margin: 80px auto;
+		text-align: center;
 	}
 
-	/* TROPHY CASE */
+	/* =========================
+	   TROPHY CASE
+	   ========================= */
 
 	.trophyCase {
-		margin-bottom: 45px;
+		margin-bottom: 40px;
 	}
 
 	.trophyHeader {
 		text-align: center;
-		margin-bottom: 22px;
+		margin-bottom: 18px;
 	}
 
 	.trophyHeader h1 {
 		margin: 0;
-		font-size: 1.9em;
+		font-size: 1.7em;
 	}
 
 	.trophyHeader p {
-		margin: 6px 0 0;
+		margin: 5px 0 0;
 		color: #888;
-		font-size: 0.9em;
+		font-size: 0.88em;
 	}
 
-	.trophyGrid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 12px;
-	}
-
-	.trophyCard {
-		background-color: var(--f3f3f3);
+	.trophyList {
 		border: 1px solid var(--ddd);
-		padding: 20px 12px;
-		text-align: center;
+		background-color: var(--f3f3f3);
 		box-shadow:
 			0px 3px 3px -2px var(--boxShadowOne),
 			0px 3px 4px 0px var(--boxShadowTwo),
 			0px 1px 8px 0px var(--boxShadowThree);
 	}
 
-	.trophyLogo {
-		display: block;
-		width: 85px;
-		height: 85px;
-		object-fit: contain;
-		margin: 0 auto 10px;
-		border-radius: 50%;
+	.trophyRow {
+		display: grid;
+		grid-template-columns: 75px 1fr auto;
+		align-items: center;
+		gap: 15px;
+		padding: 15px 18px;
 		background-color: var(--fff);
-		border: 1px solid var(--bbb);
+		border-bottom: 1px solid var(--ddd);
 	}
 
-	.trophyImage {
-		width: 50px;
-		height: 50px;
+	.trophyRow:last-child {
+		border-bottom: none;
+	}
+
+	.trophyLogo {
+		width: 62px;
+		height: 62px;
 		object-fit: contain;
-		margin: 5px auto 8px;
-		display: block;
+		border-radius: 50%;
+		border: 1px solid var(--bbb);
+		background-color: var(--fff);
 	}
 
 	.trophyTeam {
-		font-size: 1em;
-		font-weight: 700;
+		min-width: 0;
 	}
 
-	.trophyManager {
+	.teamName {
+		font-weight: 700;
+		font-size: 1em;
+		line-height: 1.2;
+	}
+
+	.managerName {
 		margin-top: 4px;
 		color: #888;
 		font-size: 0.8em;
 	}
 
+	.winningYears {
+		margin-top: 5px;
+		color: #888;
+		font-size: 0.75em;
+	}
+
 	.trophyCount {
-		margin-top: 10px;
+		text-align: right;
+		white-space: nowrap;
 		font-weight: 700;
 		font-size: 0.95em;
 	}
 
-	.trophyYears {
-		margin-top: 5px;
-		color: #888;
-		font-size: 0.78em;
+	.trophyIcon {
+		display: inline-block;
+		margin-right: 4px;
 	}
 
-	/* HISTORY */
+	/* =========================
+	   CHAMPIONSHIP HISTORY
+	   ========================= */
 
 	.historyHeader {
 		text-align: center;
-		margin: 15px 0 25px;
+		margin: 45px 0 20px;
 	}
 
 	.historyHeader h2 {
@@ -201,29 +199,61 @@
 	}
 
 	.historyHeader p {
-		margin: 6px 0 0;
+		margin: 5px 0 0;
 		color: #888;
-		font-size: 0.9em;
+		font-size: 0.88em;
 	}
 
-	@media (max-width: 700px) {
+	@media (max-width: 600px) {
+
 		.awardsPage {
 			width: 94%;
-			padding-top: 22px;
+			margin-top: 22px;
 		}
 
-		.trophyGrid {
-			grid-template-columns: repeat(2, 1fr);
+		.trophyRow {
+			grid-template-columns: 60px 1fr auto;
+			gap: 10px;
+			padding: 12px;
 		}
 
-		.trophyHeader h1 {
-			font-size: 1.65em;
+		.trophyLogo {
+			width: 52px;
+			height: 52px;
+		}
+
+		.teamName {
+			font-size: 0.9em;
+		}
+
+		.managerName {
+			font-size: 0.72em;
+		}
+
+		.winningYears {
+			font-size: 0.68em;
+		}
+
+		.trophyCount {
+			font-size: 0.8em;
 		}
 	}
 
-	@media (max-width: 450px) {
-		.trophyGrid {
-			grid-template-columns: 1fr;
+	@media (max-width: 430px) {
+
+		.trophyRow {
+			grid-template-columns: 52px 1fr;
+		}
+
+		.trophyLogo {
+			width: 45px;
+			height: 45px;
+		}
+
+		.trophyCount {
+			grid-column: 2;
+			text-align: left;
+			margin-top: -4px;
 		}
 	}
 </style>
@@ -242,29 +272,33 @@
 
 		{#if podiums.length}
 
-			<!-- TROPHY CASE -->
+			<!-- =========================
+			     TROPHY CASE
+			     ========================= -->
 
 			<div class="trophyCase">
 
 				<div class="trophyHeader">
+
 					<h1>🏆 Trophy Case</h1>
-					<p>Every Big Bowl champion in league history</p>
+
+					<p>
+						Every Big Bowl champion in league history
+					</p>
+
 				</div>
 
-				<div class="trophyGrid">
 
-					{#each getAllChampions(podiums) as champion}
+				<div class="trophyList">
 
-						<div class="trophyCard">
+					{#each getChampions(podiums) as champion}
 
-							<img
-								src="/TBB Trophy.png"
-								class="trophyImage"
-								alt="Big Bowl trophy"
-							/>
+						<div class="trophyRow">
+
+							<!-- CURRENT TEAM LOGO -->
 
 							<img
-								src={getCurrentTeamAvatar(
+								src={getCurrentTeamLogo(
 									leagueTeamManagers,
 									champion.rosterID,
 									podiums[podiums.length - 1].year
@@ -273,29 +307,43 @@
 								alt="Team logo"
 							/>
 
+
+							<!-- CURRENT TEAM INFO -->
+
 							<div class="trophyTeam">
-								{getCurrentTeamName(
-									leagueTeamManagers,
-									champion.rosterID
-								)}
+
+								<div class="teamName">
+									{getCurrentTeamName(
+										leagueTeamManagers,
+										champion.rosterID
+									)}
+								</div>
+
+								<div class="managerName">
+									{renderManagerNames(
+										leagueTeamManagers,
+										champion.rosterID,
+										podiums[podiums.length - 1].year
+									)}
+								</div>
+
+								<div class="winningYears">
+									{champion.years.join(' • ')}
+								</div>
+
 							</div>
 
-							<div class="trophyManager">
-								{renderManagerNames(
-									leagueTeamManagers,
-									champion.rosterID,
-									podiums[podiums.length - 1].year
-								)}
-							</div>
+
+							<!-- TROPHY COUNT -->
 
 							<div class="trophyCount">
-								{champion.years.length === 1
-									? '1 Big Bowl'
-									: `${champion.years.length} Big Bowls`}
-							</div>
 
-							<div class="trophyYears">
-								{champion.years.join(' • ')}
+								<span class="trophyIcon">🏆</span>
+
+								{getBigBowlText(
+									champion.years.length
+								)}
+
 							</div>
 
 						</div>
@@ -307,11 +355,15 @@
 			</div>
 
 
-			<!-- CHAMPIONSHIP HISTORY -->
+			<!-- =========================
+			     CHAMPIONSHIP HISTORY
+			     ========================= -->
 
 			<div class="historyHeader">
 
-				<h2>Championship History</h2>
+				<h2>
+					Championship History
+				</h2>
 
 				<p>
 					The Big Bowl finalists from every completed season
@@ -328,6 +380,7 @@
 				/>
 
 			{/each}
+
 
 		{:else}
 
