@@ -1,381 +1,877 @@
 <script>
-    import Button, { Group, Label } from '@smui/button';
+	import Button, { Group, Label } from '@smui/button';
 	import LinearProgress from '@smui/linear-progress';
-    import {loadPlayers, getLeagueTransactions} from '$lib/utils/helper';
+	import { loadPlayers, getLeagueTransactions } from '$lib/utils/helper';
 	import Roster from '../Rosters/Roster.svelte';
 	import TransactionsPage from '../Transactions/TransactionsPage.svelte';
-    import { goto } from '$app/navigation';
-    import ManagerFantasyInfo from './ManagerFantasyInfo.svelte';
-    import ManagerAwards from './ManagerAwards.svelte';
-    import { onMount } from 'svelte';
-	import { getDatesActive, getRosterIDFromManagerID, getTeamNameFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
+	import { goto } from '$app/navigation';
+	import ManagerFantasyInfo from './ManagerFantasyInfo.svelte';
+	import ManagerAwards from './ManagerAwards.svelte';
+	import { onMount } from 'svelte';
+	import {
+		getDatesActive,
+		getRosterIDFromManagerID,
+		getTeamNameFromTeamManagers
+	} from '$lib/utils/helperFunctions/universalFunctions';
 
-    export let manager, managers, rostersData, leagueTeamManagers, rosterPositions, transactionsData, awards, records;
+	export let manager, managers, rostersData, leagueTeamManagers, rosterPositions, transactionsData, awards, records;
 
-    let transactions = transactionsData.transactions;
+	let transactions = transactionsData.transactions;
 
-    $: viewManager = managers[manager];
+	$: viewManager = managers[manager];
 
-    $: datesActive = getDatesActive(leagueTeamManagers, viewManager.managerID);
+	$: datesActive = getDatesActive(
+		leagueTeamManagers,
+		viewManager.managerID
+	);
 
-    const  startersAndReserve = rostersData.startersAndReserve;
-    let rosters = rostersData.rosters;
+	const startersAndReserve = rostersData.startersAndReserve;
 
-    $: ({rosterID, year} = viewManager.managerID ? getRosterIDFromManagerID(leagueTeamManagers, viewManager.managerID) : {rosterID: viewManager.roster, year: null});
+	let rosters = rostersData.rosters;
 
-    $: teamTransactions = transactions.filter(t => t.rosters.includes(parseInt(rosterID)));
+	$: ({ rosterID, year } = viewManager.managerID
+		? getRosterIDFromManagerID(
+				leagueTeamManagers,
+				viewManager.managerID
+			)
+		: {
+				rosterID: viewManager.roster,
+				year: null
+			});
 
-    $: roster = rosters[rosterID];
+	$: teamTransactions = transactions.filter(
+		t => t.rosters.includes(parseInt(rosterID))
+	);
 
-    $: coOwners = year && rosterID ? leagueTeamManagers.teamManagersMap[year][rosterID].managers.length > 1 : roster.co_owners;
+	$: roster = rosters[rosterID];
 
-    $: commissioner = viewManager.managerID ? leagueTeamManagers.users[viewManager.managerID].is_owner : false;
+	$: coOwners =
+		year && rosterID
+			? leagueTeamManagers.teamManagersMap[year][rosterID].managers.length > 1
+			: roster.co_owners;
 
-    let players, playersInfo;
-    let loading = true;
+	$: commissioner = viewManager.managerID
+		? leagueTeamManagers.users[viewManager.managerID].is_owner
+		: false;
 
-    const refreshTransactions = async () => {
-        const newTransactions = await getLeagueTransactions(false, true);
-        transactions = newTransactions.transactions;
-    }
 
-    onMount(async () => {
-        if(transactionsData.stale) {
-            refreshTransactions();
-        }
-        const playerData = await loadPlayers(null);
-        playersInfo = playerData;
-        players = playerData.players;
-        loading = false;
+	/* =========================
+	   BIG BOWL CHAMPIONSHIPS
+	   ========================= */
 
-        if(playerData.stale) {
-            const newPlayerData = await loadPlayers(null, true);
-            playersInfo = newPlayerData;
-            players = newPlayerData.players;
-        }
-    })
+	function getChampionshipCount(rosterID) {
+		if (!awards || !rosterID) return 0;
 
-    const changeManager = (newManager, noscroll = false) => {
-        if(!newManager) {
-            goto(`/managers`);
-        }
-        manager = newManager;
-        goto(`/manager?manager=${newManager}`, {noscroll});
-    }
+		return awards.filter(
+			award =>
+				String(award.champion) === String(rosterID)
+		).length;
+	}
+
+
+	let players, playersInfo;
+	let loading = true;
+
+
+	const refreshTransactions = async () => {
+		const newTransactions =
+			await getLeagueTransactions(false, true);
+
+		transactions = newTransactions.transactions;
+	};
+
+
+	onMount(async () => {
+
+		if (transactionsData.stale) {
+			refreshTransactions();
+		}
+
+		const playerData = await loadPlayers(null);
+
+		playersInfo = playerData;
+
+		players = playerData.players;
+
+		loading = false;
+
+
+		if (playerData.stale) {
+
+			const newPlayerData =
+				await loadPlayers(null, true);
+
+			playersInfo = newPlayerData;
+
+			players = newPlayerData.players;
+		}
+	});
+
+
+	const changeManager = (
+		newManager,
+		noscroll = false
+	) => {
+
+		if (!newManager) {
+			goto('/managers');
+		}
+
+		manager = newManager;
+
+		goto(
+			`/manager?manager=${newManager}`,
+			{ noscroll }
+		);
+	};
 </script>
 
+
 <style>
-    .managerContainer {
-        width: 100%;
-        margin: 2em 0 5em;
-    }
 
-    .managerConstrained {
-        width: 97%;
-        max-width: 800px;
-        margin: 0 auto 4em;
-    }
+	.managerContainer {
+		position: relative;
 
-    .managerPhoto {
-        display: block;
-        border-radius: 100%;
-        width: 70%;
-        max-width: 200px;
-        height: auto;
-        margin: 5em auto 1em;
-        box-shadow: 0 0 8px 4px #aaa;
-    }
+		width: 100%;
 
-    h2 {
-        text-align: center;
-        font-size: 2.8em;
-        margin: 1em 0 0em;
-        line-height: 1em;
-    }
+		margin: 2em 0 5em;
+	}
 
-    h3 {
-        text-align: center;
-        font-size: 1.5em;
-        margin: 1.5em 0 0.5em;
-        font-weight: 200;
-    }
 
-    .basicInfo {
-        display: flex;
-        justify-content: space-evenly;
-        align-items: center;
-        height: 24px;
-        margin: 2em 0;
-    }
+	.managerConstrained {
+		width: 97%;
 
-    .basicInfo span {
-        color: #888;
-        font-size: 0.9em;
-    }
+		max-width: 800px;
 
-    .infoChild {
-        font-style: italic;
-    }
+		margin: 0 auto 4em;
+	}
 
-    .infoContact {
-        height: 20px;
-        vertical-align: middle;
-        padding-left: 1em;
-    }
 
-    .infoTeam {
-        height: 48px;
-    }
+	.managerPhoto {
+		display: block;
 
-    .bio {
-        margin: 2em 1.5em 2em;
-        text-indent: 4em;
-    }
+		border-radius: 100%;
 
-    .philosophy {
-        margin: 2em 1.5em 2em;
-        text-indent: 4em;
-    }
+		width: 70%;
 
-  .philosophy23 {
-        margin: 2em 1.5em 2em;
-        text-indent: 4em;
-    }
+		max-width: 200px;
 
-    .philosophy24 {
-        margin: 2em 1.5em 2em;
-        text-indent: 4em;
-    }
+		height: auto;
 
-    .philosophy25 {
-        margin: 2em 1.5em 2em;
-        text-indent: 4em;
-    }
+		margin: 5em auto 1em;
 
-    .philosophy26 {
-        margin: 2em 1.5em 2em;
-        text-indent: 4em;
-    }
+		box-shadow: 0 0 8px 4px #aaa;
+	}
 
-    .loading {
-        display: block;
-        width: 85%;
-        max-width: 500px;
-        margin: 80px auto;
-    }
 
-    .teamSub {
-        font-size: 0.4em;
-        line-height: 1em;
-        color: #666;
-    }
+	h2 {
+		text-align: center;
 
-    .managerNav {
-        margin: 4em 0 2em;
-        text-align: center;
-    }
+		font-size: 2.8em;
 
-    .upper {
-        margin-top: 0;
-    }
+		margin: 1em 0 0em;
 
-    .commissionerBadge {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 25px;
-        width: 25px;
-        font-weight: 600;
-        border-radius: 15px;
-        background-color: var(--blueTwo);
-        border: 1px solid var(--blueOne);
-    }
+		line-height: 1em;
+	}
 
-    .commissionerBadge span {
-        font-style: normal;
-        color: #fff;
-    }
 
-    /* media queries */
+	h3 {
+		text-align: center;
 
-    @media (max-width: 505px) {
-        :global(.selectionButtons span) {
-            font-size: 0.8em;
-        }
-    }
+		font-size: 1.5em;
 
-    @media (max-width: 435px) {
-        :global(.selectionButtons span) {
-            line-height: 1.2em;
-            font-size: 0.8em;
-        }
-    }
+		margin: 1.5em 0 0.5em;
+
+		font-weight: 200;
+	}
+
+
+	.basicInfo {
+		display: flex;
+
+		justify-content: space-evenly;
+
+		align-items: center;
+
+		height: 24px;
+
+		margin: 2em 0;
+	}
+
+
+	.basicInfo span {
+		color: #888;
+
+		font-size: 0.9em;
+	}
+
+
+	.infoChild {
+		font-style: italic;
+	}
+
+
+	.infoContact {
+		height: 20px;
+
+		vertical-align: middle;
+
+		padding-left: 1em;
+	}
+
+
+	.infoTeam {
+		height: 48px;
+	}
+
+
+	/* Big Bowl championship count */
+
+	.championshipInfo {
+		font-style: normal !important;
+
+		font-weight: 500;
+
+		white-space: nowrap;
+	}
+
+
+	.bio {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
+	}
+
+
+	.philosophy {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
+	}
+
+
+	.philosophy23 {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
+	}
+
+
+	.philosophy24 {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
+	}
+
+
+	.philosophy25 {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
+	}
+
+
+	.philosophy26 {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
+	}
+
+
+	.loading {
+		display: block;
+
+		width: 85%;
+
+		max-width: 500px;
+
+		margin: 80px auto;
+	}
+
+
+	.teamSub {
+		font-size: 0.4em;
+
+		line-height: 1em;
+
+		color: #666;
+	}
+
+
+	.managerNav {
+		margin: 4em 0 2em;
+
+		text-align: center;
+	}
+
+
+	.upper {
+		margin-top: 0;
+	}
+
+
+	.commissionerBadge {
+		display: flex;
+
+		justify-content: center;
+
+		align-items: center;
+
+		height: 25px;
+
+		width: 25px;
+
+		font-weight: 600;
+
+		border-radius: 15px;
+
+		background-color: var(--blueTwo);
+
+		border: 1px solid var(--blueOne);
+	}
+
+
+	.commissionerBadge span {
+		font-style: normal;
+
+		color: #fff;
+	}
+
+
+	/* media queries */
+
+	@media (max-width: 505px) {
+
+		:global(.selectionButtons span) {
+			font-size: 0.8em;
+		}
+	}
+
+
+	@media (max-width: 435px) {
+
+		:global(.selectionButtons span) {
+			line-height: 1.2em;
+
+			font-size: 0.8em;
+		}
+	}
+
 
 	@media (max-width: 450px) {
 
-        .basicInfo {
-            height: 20px;
-        }
+		.basicInfo {
+			height: 20px;
+		}
 
-        .basicInfo span {
-            font-size: 0.75em;
-        }
 
-        .infoTeam {
-            height: 30px;
-        }
+		.basicInfo span {
+			font-size: 0.75em;
+		}
+
+
+		.infoTeam {
+			height: 30px;
+		}
 	}
 
-    @media (max-width: 370px) {
 
-        .basicInfo {
-            height: 18px;
-        }
+	@media (max-width: 370px) {
 
-        .basicInfo span {
-            font-size: 0.6em;
-        }
+		.basicInfo {
+			height: 18px;
+		}
 
-        .infoTeam {
-            height: 24px;
-        }
-    }
+
+		.basicInfo span {
+			font-size: 0.6em;
+		}
+
+
+		.infoTeam {
+			height: 24px;
+		}
+	}
+
 </style>
 
+
 <div class="managerContainer">
-    <div class="managerConstrained">
-        <img class="managerPhoto" src="{viewManager.photo}" alt="manager"/>
-        <h2>
-            {viewManager.name}
-            <div class="teamSub">{coOwners ? 'Co-' : ''}Manager of <i>{getTeamNameFromTeamManagers(leagueTeamManagers, rosterID, year)}</i></div>
-        </h2>
-        
-        <div class="basicInfo">
-            <span class="infoChild">{viewManager.location || 'Undisclosed Location'}</span>
-            {#if viewManager.managerID && datesActive.start}
-                <span class="seperator">|</span>
-                {#if datesActive.end}
-                    <span class="infoChild">In the league from '{datesActive.start.toString().substr(2)} to '{datesActive.end.toString().substr(2)}</span>
-                {:else}
-                    <span class="infoChild">In the league since '{datesActive.start.toString().substr(2)}</span>
-                {/if}
-            {:else if viewManager.fantasyStart}
-                <!-- fantasyStart is an optional field -->
-                <span class="seperator">|</span>
-                <span class="infoChild">Playing ff since '{viewManager.fantasyStart.toString().substr(2)}</span>
-            {/if}
-            {#if viewManager.preferredContact}
-                <!-- preferredContact is an optional field -->
-                <span class="seperator">|</span>
-                <span class="infoChild">{viewManager.preferredContact}<img class="infoChild infoContact" src="/{viewManager.preferredContact}.png" alt="favorite team"/></span>
-            {/if}
-            <!-- <span class="infoChild">{viewManager.preferredContact}</span> -->
-            {#if viewManager.favoriteTeam}
-                <!-- favoriteTeam is an optional field -->
-                <span class="seperator">|</span>
-                <img class="infoChild infoTeam" src="https://sleepercdn.com/images/team_logos/nfl/{viewManager.favoriteTeam}.png" alt="favorite team"/>
-            {/if}
-            {#if commissioner}
-                <span class="seperator">|</span>
-                <div class="infoChild commissionerBadge">
-                    <span>C</span>
-                </div>
-            {/if}
-        </div>
 
-        <div class="managerNav upper">
-            <Group variant="outlined">
-                {#if manager == 0}
-                    <Button disabled class="selectionButtons" onclick={() => changeManager(parseInt(manager) - 1, true)} variant="outlined">
-                        <Label>Previous Manager</Label>
-                    </Button>
-                {:else}
-                    <Button class="selectionButtons" onclick={() => changeManager(parseInt(manager) - 1, true)} variant="outlined">
-                        <Label>Previous Manager</Label>
-                    </Button>
-                {/if}
-                <Button class="selectionButtons" onclick={() => goto('/managers')} variant="outlined">
-                    <Label>All Managers</Label>
-                </Button>
-                {#if manager == managers.length - 1}
-                    <Button disabled class="selectionButtons" onclick={() => changeManager(parseInt(manager) + 1, true)} variant="outlined">
-                        <Label>Next Manager</Label>
-                    </Button>
-                {:else}
-                    <Button class="selectionButtons" onclick={() => changeManager(parseInt(manager) + 1, true)} variant="outlined">
-                        <Label>Next Manager</Label>
-                    </Button>
-                {/if}
-            </Group>
-        </div>
+	<div class="managerConstrained">
 
-        <p class="bio">{@html viewManager.bio}</p>
+		<img
+			class="managerPhoto"
+			src="{viewManager.photo}"
+			alt="manager"
+		/>
 
-        {#if viewManager.philosophy}
-            <!-- philosophy is an optional field -->
-            <h3>Team History</h3>
-            <p class="philosophy">{@html viewManager.philosophy}</p>
- 	    <p class="philosophy23">{@html viewManager.philosophy23}</p>
-            <p class="philosophy24">{@html viewManager.philosophy24}</p>
-            <p class="philosophy25">{@html viewManager.philosophy25}</p>
-            <p class="philosophy26">{@html viewManager.philosophy26}</p>
-        {/if}
-    </div>
 
-    {#if !loading}
-        <!-- Favorite player -->
-        <ManagerFantasyInfo {viewManager} {players} {changeManager} />
-    {/if}
+		<h2>
 
-    <ManagerAwards {leagueTeamManagers} tookOver={viewManager.tookOver} {awards} {records} {rosterID} managerID={viewManager.managerID} />
+			{viewManager.name}
 
-    {#if loading}
-        <!-- promise is pending -->
-        <div class="loading">
-            <p>Retrieving players...</p>
-            <LinearProgress indeterminate />
-        </div>
-    {:else}
-        <Roster division="1" expanded={false} {rosterPositions} {roster} {leagueTeamManagers} {players} {startersAndReserve} />
-    {/if}
+			<div class="teamSub">
 
-    <h3>Team Transactions</h3>
-    <div class="managerConstrained">
-        {#if loading}
-            <!-- promise is pending -->
-            <div class="loading">
-                <p>Retrieving players...</p>
-                <LinearProgress indeterminate />
-            </div>
-        {:else}
-            <TransactionsPage {playersInfo} transactions={teamTransactions} {leagueTeamManagers} show='both' query='' page={0} perPage={5} />
-        {/if}
-    </div>
+				{coOwners ? 'Co-' : ''}Manager of
 
-    <div class="managerNav">
-        <Group variant="outlined">
-            {#if manager == 0}
-                <Button disabled class="selectionButtons" onclick={() => changeManager(parseInt(manager) - 1)} variant="outlined">
-                    <Label>Previous Manager</Label>
-                </Button>
-            {:else}
-                <Button class="selectionButtons" onclick={() => changeManager(parseInt(manager) - 1)} variant="outlined">
-                    <Label>Previous Manager</Label>
-                </Button>
-            {/if}
-            <Button class="selectionButtons" onclick={() => goto('/managers')} variant="outlined">
-                <Label>All Managers</Label>
-            </Button>
-            {#if manager == managers.length - 1}
-                <Button disabled class="selectionButtons" onclick={() => changeManager(parseInt(manager) + 1)} variant="outlined">
-                    <Label>Next Manager</Label>
-                </Button>
-            {:else}
-                <Button class="selectionButtons" onclick={() => changeManager(parseInt(manager) + 1)} variant="outlined">
-                    <Label>Next Manager</Label>
-                </Button>
-            {/if}
-        </Group>
-    </div>
+				<i>
+					{getTeamNameFromTeamManagers(
+						leagueTeamManagers,
+						rosterID,
+						year
+					)}
+				</i>
+
+			</div>
+
+		</h2>
+
+
+		<div class="basicInfo">
+
+			<!-- LOCATION -->
+
+			<span class="infoChild">
+
+				{viewManager.location ||
+					'Undisclosed Location'}
+
+			</span>
+
+
+			<!-- LEAGUE HISTORY -->
+
+			{#if viewManager.managerID && datesActive.start}
+
+				<span class="seperator">|</span>
+
+				{#if datesActive.end}
+
+					<span class="infoChild">
+
+						In the league from
+						'{datesActive.start
+							.toString()
+							.substr(2)}
+
+						to
+						'{datesActive.end
+							.toString()
+							.substr(2)}
+
+					</span>
+
+				{:else}
+
+					<span class="infoChild">
+
+						In the league since
+						'{datesActive.start
+							.toString()
+							.substr(2)}
+
+					</span>
+
+				{/if}
+
+
+			{:else if viewManager.fantasyStart}
+
+				<span class="seperator">|</span>
+
+				<span class="infoChild">
+
+					Playing ff since
+					'{viewManager.fantasyStart
+						.toString()
+						.substr(2)}
+
+				</span>
+
+			{/if}
+
+
+			<!-- =========================
+			     BIG BOWL CHAMPIONSHIPS
+			     ========================= -->
+
+			<span class="seperator">|</span>
+
+			<span class="infoChild championshipInfo">
+
+				🏆 {getChampionshipCount(rosterID)}× Champion
+
+			</span>
+
+
+			<!-- =========================
+			     FAVORITE NFL TEAM
+			     ========================= -->
+
+			{#if viewManager.favoriteTeam}
+
+				<span class="seperator">|</span>
+
+				<img
+					class="infoChild infoTeam"
+					src="https://sleepercdn.com/images/team_logos/nfl/{viewManager.favoriteTeam}.png"
+					alt="favorite team"
+				/>
+
+			{/if}
+
+
+			<!-- COMMISSIONER -->
+
+			{#if commissioner}
+
+				<span class="seperator">|</span>
+
+				<div class="infoChild commissionerBadge">
+
+					<span>C</span>
+
+				</div>
+
+			{/if}
+
+		</div>
+
+
+		<!-- =========================
+		     MANAGER NAVIGATION
+		     ========================= -->
+
+		<div class="managerNav upper">
+
+			<Group variant="outlined">
+
+				{#if manager == 0}
+
+					<Button
+						disabled
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) - 1,
+								true
+							)}
+						variant="outlined"
+					>
+
+						<Label>
+							Previous Manager
+						</Label>
+
+					</Button>
+
+				{:else}
+
+					<Button
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) - 1,
+								true
+							)}
+						variant="outlined"
+					>
+
+						<Label>
+							Previous Manager
+						</Label>
+
+					</Button>
+
+				{/if}
+
+
+				<Button
+					class="selectionButtons"
+					onclick={() => goto('/managers')}
+					variant="outlined"
+				>
+
+					<Label>
+						All Managers
+					</Label>
+
+				</Button>
+
+
+				{#if manager == managers.length - 1}
+
+					<Button
+						disabled
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) + 1,
+								true
+							)}
+						variant="outlined"
+					>
+
+						<Label>
+							Next Manager
+						</Label>
+
+					</Button>
+
+				{:else}
+
+					<Button
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) + 1,
+								true
+							)}
+						variant="outlined"
+					>
+
+						<Label>
+							Next Manager
+						</Label>
+
+					</Button>
+
+				{/if}
+
+			</Group>
+
+		</div>
+
+
+		<!-- BIO -->
+
+		<p class="bio">
+			{@html viewManager.bio}
+		</p>
+
+
+		<!-- TEAM HISTORY -->
+
+		{#if viewManager.philosophy}
+
+			<h3>
+				Team History
+			</h3>
+
+			<p class="philosophy">
+				{@html viewManager.philosophy}
+			</p>
+
+			<p class="philosophy23">
+				{@html viewManager.philosophy23}
+			</p>
+
+			<p class="philosophy24">
+				{@html viewManager.philosophy24}
+			</p>
+
+			<p class="philosophy25">
+				{@html viewManager.philosophy25}
+			</p>
+
+			<p class="philosophy26">
+				{@html viewManager.philosophy26}
+			</p>
+
+		{/if}
+
+	</div>
+
+
+	<!-- FAVORITE PLAYER -->
+
+	{#if !loading}
+
+		<ManagerFantasyInfo
+			{viewManager}
+			{players}
+			{changeManager}
+		/>
+
+	{/if}
+
+
+	<!-- MANAGER AWARDS -->
+
+	<ManagerAwards
+		{leagueTeamManagers}
+		tookOver={viewManager.tookOver}
+		{awards}
+		{records}
+		{rosterID}
+		managerID={viewManager.managerID}
+	/>
+
+
+	<!-- ROSTER -->
+
+	{#if loading}
+
+		<div class="loading">
+
+			<p>
+				Retrieving players...
+			</p>
+
+			<LinearProgress indeterminate />
+
+		</div>
+
+	{:else}
+
+		<Roster
+			division="1"
+			expanded={false}
+			{rosterPositions}
+			{roster}
+			{leagueTeamManagers}
+			{players}
+			{startersAndReserve}
+		/>
+
+	{/if}
+
+
+	<!-- TEAM TRANSACTIONS -->
+
+	<h3>
+		Team Transactions
+	</h3>
+
+
+	<div class="managerConstrained">
+
+		{#if loading}
+
+			<div class="loading">
+
+				<p>
+					Retrieving players...
+				</p>
+
+				<LinearProgress indeterminate />
+
+			</div>
+
+		{:else}
+
+			<TransactionsPage
+				{playersInfo}
+				transactions={teamTransactions}
+				{leagueTeamManagers}
+				show="both"
+				query=""
+				page={0}
+				perPage={5}
+			/>
+
+		{/if}
+
+	</div>
+
+
+	<!-- BOTTOM MANAGER NAVIGATION -->
+
+	<div class="managerNav">
+
+		<Group variant="outlined">
+
+			{#if manager == 0}
+
+				<Button
+					disabled
+					class="selectionButtons"
+					onclick={() =>
+						changeManager(
+							parseInt(manager) - 1
+						)}
+					variant="outlined"
+				>
+
+					<Label>
+						Previous Manager
+					</Label>
+
+				</Button>
+
+			{:else}
+
+				<Button
+					class="selectionButtons"
+					onclick={() =>
+						changeManager(
+							parseInt(manager) - 1
+						)}
+					variant="outlined"
+				>
+
+					<Label>
+						Previous Manager
+					</Label>
+
+				</Button>
+
+			{/if}
+
+
+			<Button
+				class="selectionButtons"
+				onclick={() => goto('/managers')}
+				variant="outlined"
+			>
+
+				<Label>
+					All Managers
+				</Label>
+
+			</Button>
+
+
+			{#if manager == managers.length - 1}
+
+				<Button
+					disabled
+					class="selectionButtons"
+					onclick={() =>
+						changeManager(
+							parseInt(manager) + 1
+						)}
+					variant="outlined"
+				>
+
+					<Label>
+						Next Manager
+					</Label>
+
+				</Button>
+
+			{:else}
+
+				<Button
+					class="selectionButtons"
+					onclick={() =>
+						changeManager(
+							parseInt(manager) + 1
+						)}
+					variant="outlined"
+				>
+
+					<Label>
+						Next Manager
+					</Label>
+
+				</Button>
+
+			{/if}
+
+		</Group>
+
+	</div>
 
 </div>
