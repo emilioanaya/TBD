@@ -54,6 +54,42 @@
 
 
 	/* =========================
+	   BIG BOWL MVPs
+	   ========================= */
+
+	const bigBowlMVPs = {
+		2023: {
+			name: 'CeeDee Lamb',
+			position: 'WR',
+			nflTeam: 'Dallas Cowboys',
+			nflAbbreviation: 'DAL',
+			points: '40.20',
+			playerID: '6786'
+		},
+
+		2024: {
+			name: 'Trey McBride',
+			position: 'TE',
+			nflTeam: 'Arizona Cardinals',
+			nflAbbreviation: 'ARI',
+			points: '36.30',
+			playerID: '8130'
+		},
+
+		2025: {
+			name: 'Derrick Henry',
+			position: 'RB',
+			nflTeam: 'Baltimore Ravens',
+			nflAbbreviation: 'BAL',
+			points: '45.60',
+			playerID: '3198'
+		}
+	};
+
+	const mvp = bigBowlMVPs[year];
+
+
+	/* =========================
 	   OPEN MANAGER
 	   ========================= */
 
@@ -104,7 +140,6 @@
 
 		border-radius: 3px;
 
-		/* Prevent long content from expanding the card */
 		min-width: 0;
 
 		overflow: hidden;
@@ -189,7 +224,6 @@
 			transform 0.15s ease,
 			box-shadow 0.15s ease;
 
-		/* Critical for long team names */
 		min-width: 0;
 
 		width: 100%;
@@ -275,15 +309,8 @@
 
 		line-height: 1.15;
 
-		/*
-		 * Automatically scales between 0.72em and 0.92em
-		 * depending on available space.
-		 */
 		font-size: clamp(0.72em, 2vw, 0.92em);
 
-		/*
-		 * Keeps long names inside their card.
-		 */
 		max-width: 100%;
 
 		overflow-wrap: break-word;
@@ -295,8 +322,6 @@
 		margin: 0 auto;
 	}
 
-
-	/* Champion name can be slightly larger */
 
 	.firstCard .teamName {
 		font-size: clamp(0.78em, 2.2vw, 1em);
@@ -321,6 +346,110 @@
 		overflow-wrap: break-word;
 
 		text-wrap: balance;
+	}
+
+
+	/* =========================
+	   BIG BOWL MVP
+	   ========================= */
+
+	.mvpSection {
+		width: 100%;
+
+		max-width: 650px;
+
+		margin: 22px auto 0;
+
+		padding: 14px 16px;
+
+		background-color: var(--f3f3f3);
+
+		border: 1px solid var(--ddd);
+
+		box-sizing: border-box;
+
+		text-align: center;
+	}
+
+
+	.mvpTitle {
+		margin-bottom: 10px;
+
+		font-size: 1em;
+
+		font-weight: 700;
+	}
+
+
+	.mvpCard {
+		display: inline-flex;
+
+		align-items: center;
+
+		justify-content: center;
+
+		gap: 12px;
+
+		max-width: 100%;
+
+		padding: 8px 14px;
+
+		background-color: var(--fff);
+
+		border: 1px solid var(--ddd);
+
+		box-sizing: border-box;
+
+		text-align: left;
+	}
+
+
+	.mvpImage {
+		width: 58px;
+
+		height: 58px;
+
+		object-fit: cover;
+
+		border-radius: 50%;
+
+		border: 1px solid var(--bbb);
+
+		flex-shrink: 0;
+	}
+
+
+	.mvpInfo {
+		min-width: 0;
+	}
+
+
+	.mvpName {
+		font-size: 0.95em;
+
+		font-weight: 700;
+
+		line-height: 1.15;
+	}
+
+
+	.mvpDetails {
+		margin-top: 3px;
+
+		color: #888;
+
+		font-size: 0.75em;
+
+		line-height: 1.2;
+	}
+
+
+	.mvpPoints {
+		margin-top: 3px;
+
+		font-size: 0.75em;
+
+		font-weight: 600;
 	}
 
 
@@ -516,9 +645,6 @@
 		.podium {
 			display: grid;
 
-			/*
-			 * Equal-width 2nd and 3rd place cards.
-			 */
 			grid-template-columns:
 				minmax(0, 1fr)
 				minmax(0, 1fr);
@@ -546,8 +672,6 @@
 		}
 
 
-		/* Champion takes the full row */
-
 		.firstCard {
 			grid-column: 1 / -1;
 
@@ -572,10 +696,6 @@
 
 
 		.teamName {
-			/*
-			 * Slightly smaller on phones,
-			 * but still automatically adjusts.
-			 */
 			font-size: clamp(0.68em, 3.2vw, 0.85em);
 
 			line-height: 1.15;
@@ -593,6 +713,38 @@
 			font-size: clamp(0.62em, 2.7vw, 0.7em);
 
 			line-height: 1.15;
+		}
+
+
+		.mvpSection {
+			margin-top: 16px;
+
+			padding: 12px 10px;
+		}
+
+
+		.mvpCard {
+			gap: 9px;
+
+			padding: 7px 10px;
+		}
+
+
+		.mvpImage {
+			width: 52px;
+
+			height: 52px;
+		}
+
+
+		.mvpName {
+			font-size: 0.85em;
+		}
+
+
+		.mvpDetails,
+		.mvpPoints {
+			font-size: 0.68em;
 		}
 
 
@@ -651,6 +803,18 @@
 
 		.managerName {
 			font-size: clamp(0.58em, 2.6vw, 0.68em);
+		}
+
+
+		.mvpImage {
+			width: 48px;
+
+			height: 48px;
+		}
+
+
+		.mvpCard {
+			padding: 6px 8px;
 		}
 	}
 
@@ -864,6 +1028,56 @@
 			</div>
 
 		</div>
+
+
+		<!-- =========================
+		     BIG BOWL MVP
+		     ========================= -->
+
+		{#if mvp}
+
+			<div class="mvpSection">
+
+				<div class="mvpTitle">
+					🏆 Big Bowl MVP
+				</div>
+
+
+				<div class="mvpCard">
+
+					<img
+						src="https://sleepercdn.com/content/nfl/players/{mvp.playerID}.jpg"
+						class="mvpImage"
+						alt="{mvp.name}"
+					/>
+
+
+					<div class="mvpInfo">
+
+						<div class="mvpName">
+							{mvp.name}
+						</div>
+
+
+						<div class="mvpDetails">
+							{mvp.position}
+							•
+							{mvp.nflTeam}
+							({mvp.nflAbbreviation})
+						</div>
+
+
+						<div class="mvpPoints">
+							{mvp.points} points
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		{/if}
 
 
 		<!-- =========================
