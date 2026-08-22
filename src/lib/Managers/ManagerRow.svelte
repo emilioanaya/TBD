@@ -180,18 +180,11 @@
 		height: 30px;
 	}
 
-	.infoAnswer {
+	/* Text underneath icons */
+	.infoAnswer,
+	.teamAbbreviation,
+	.championshipAnswer {
 		font-size: 0.8em;
-		color: var(--g555);
-		width: 63px;
-		text-align: center;
-		line-height: 1.2em;
-	}
-
-	/* Favorite NFL abbreviation */
-	.teamAbbreviation {
-		font-size: 0.75em;
-		font-weight: 600;
 		color: var(--g555);
 		width: 63px;
 		text-align: center;
@@ -199,19 +192,17 @@
 		margin-top: 2px;
 	}
 
-	/* Big Bowl championship count */
-	.championshipIcon {
-		font-size: 1.25em;
-		line-height: 1;
+	.teamAbbreviation {
+		font-weight: 600;
 	}
 
 	.championshipAnswer {
-		font-size: 0.8em;
-		color: var(--g555);
-		width: 63px;
-		text-align: center;
-		line-height: 1.2em;
 		font-weight: 600;
+	}
+
+	.championshipIcon {
+		font-size: 1.25em;
+		line-height: 1;
 	}
 
 	.avatarHolder {
@@ -239,6 +230,11 @@
 		background-color: #fff;
 	}
 
+
+	/* =========================
+	   MOBILE
+	   ========================= */
+
 	@media (max-width: 665px) {
 		.name {
 			font-size: 0.9em;
@@ -250,6 +246,7 @@
 			margin-left: 0.5em;
 		}
 	}
+
 
 	@media (max-width: 595px) {
 		.manager {
@@ -286,16 +283,17 @@
 		}
 
 		.infoAnswer,
+		.teamAbbreviation,
 		.championshipAnswer {
 			font-size: 0.7em;
 			width: 56px;
 		}
 
-		.teamAbbreviation {
-			font-size: 0.65em;
-			width: 56px;
+		.championshipIcon {
+			font-size: 1.1em;
 		}
 	}
+
 
 	@media (max-width: 475px) {
 		.name {
@@ -329,12 +327,8 @@
 		}
 
 		.infoAnswer,
+		.teamAbbreviation,
 		.championshipAnswer {
-			font-size: 0.6em;
-			width: 49px;
-		}
-
-		.teamAbbreviation {
 			font-size: 0.6em;
 			width: 49px;
 		}
@@ -343,6 +337,7 @@
 			font-size: 1em;
 		}
 	}
+
 
 	@media (max-width: 370px) {
 		.infoTeam {
@@ -359,6 +354,9 @@
 		: ''}"
 	onclick={() => goto(`/manager?manager=${key}`)}
 >
+
+	<!-- MANAGER PHOTO -->
+
 	<div class="avatarHolder">
 
 		<img
@@ -378,17 +376,23 @@
 	</div>
 
 
+	<!-- MANAGER NAME -->
+
 	<div class="name">
 		{manager.name}
 	</div>
 
 
+	<!-- TEAM NAME -->
+
 	<div class="team">
+
 		{getTeamNameFromTeamManagers(
 			leagueTeamManagers,
 			rosterID,
 			year
 		)}
+
 	</div>
 
 
@@ -397,8 +401,32 @@
 
 	<div class="info">
 
+
 		<!-- =========================
-		     FAVORITE NFL TEAM
+		     1. BIG BOWL CHAMPIONSHIPS
+		     ========================= -->
+
+		<div class="infoSlot">
+
+			<div class="infoIcon">
+
+				<span class="championshipIcon">
+					🏆
+				</span>
+
+			</div>
+
+			<div class="championshipAnswer">
+
+				{getChampionshipCount()}×
+
+			</div>
+
+		</div>
+
+
+		<!-- =========================
+		     2. FAVORITE NFL TEAM
 		     ========================= -->
 
 		<div class="infoSlot infoTeam">
@@ -445,30 +473,7 @@
 
 
 		<!-- =========================
-		     BIG BOWL CHAMPIONSHIPS
-		     ========================= -->
-
-		<div class="infoSlot">
-
-			<div class="infoIcon">
-
-				<span class="championshipIcon">
-					🏆
-				</span>
-
-			</div>
-
-			<div class="championshipAnswer">
-
-				{getChampionshipCount()}×
-
-			</div>
-
-		</div>
-
-
-		<!-- =========================
-		     REBUILD / WIN NOW
+		     3. REBUILD / WIN NOW
 		     ========================= -->
 
 		{#if dynasty}
