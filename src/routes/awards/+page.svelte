@@ -1,6 +1,10 @@
 <script>
 	import { Awards } from '$lib/components';
-	import { waitForAll } from '$lib/utils/helper';
+
+	import {
+		waitForAll,
+		gotoManager
+	} from '$lib/utils/helper';
 
 	import {
 		getAvatarFromTeamManagers,
@@ -16,7 +20,7 @@
 
 
 	/* =========================
-	   TROPHY CASE DATA
+	   TROPHY CASE
 	   ========================= */
 
 	function getCurrentYear(podiums) {
@@ -54,8 +58,8 @@
 
 
 		/*
-		 * Sort by most Big Bowls first.
-		 * If tied, the team that won first appears first.
+		 * Most Big Bowls first.
+		 * If tied, earliest champion first.
 		 */
 
 		return Object.values(champions).sort((a, b) => {
@@ -77,6 +81,26 @@
 		}
 
 		return `${count} Big Bowls`;
+	}
+
+
+	/* =========================
+	   OPEN TEAM / MANAGER PAGE
+	   ========================= */
+
+	function openChampion(
+		rosterID,
+		year,
+		leagueTeamManagers
+	) {
+
+		if (!rosterID) return;
+
+		gotoManager({
+			year,
+			leagueTeamManagers,
+			rosterID
+		});
 	}
 </script>
 
@@ -203,12 +227,31 @@
 		background-color: var(--fff);
 
 		border-bottom: 1px solid var(--ddd);
+
+		cursor: pointer;
+
+		transition:
+			background-color 0.15s ease;
 	}
 
 
 	.trophyRow:last-child {
 
 		border-bottom: none;
+	}
+
+
+	.trophyRow:hover {
+
+		background-color: var(--f3f3f3);
+	}
+
+
+	.trophyRow:focus {
+
+		outline: 2px solid var(--blueOne);
+
+		outline-offset: -2px;
 	}
 
 
@@ -267,7 +310,7 @@
 
 
 	/* =========================
-	   YEARS
+	   YEARS WON
 	   ========================= */
 
 	.winningYears {
@@ -283,7 +326,7 @@
 
 
 	/* =========================
-	   TROPHIES
+	   TROPHIES + COUNT
 	   ========================= */
 
 	.trophyCount {
@@ -454,6 +497,14 @@
 		}
 
 
+		.trophyTeam {
+
+			grid-column: 2;
+
+			grid-row: 1;
+		}
+
+
 		.winningYears {
 
 			grid-column: 2;
@@ -465,14 +516,6 @@
 			margin-top: -2px;
 
 			font-size: 0.7em;
-		}
-
-
-		.trophyTeam {
-
-			grid-column: 2;
-
-			grid-row: 1;
 		}
 
 
@@ -607,7 +650,38 @@
 						{@const currentYear = getCurrentYear(podiums)}
 
 
-						<div class="trophyRow">
+						<div
+							class="trophyRow"
+							role="button"
+							tabindex="0"
+
+							onclick={() =>
+								openChampion(
+									champion.rosterID,
+									currentYear,
+									leagueTeamManagers
+								)
+							}
+
+							onkeydown={(event) => {
+
+								if (
+									event.key === 'Enter' ||
+									event.key === ' '
+								) {
+
+									event.preventDefault();
+
+									openChampion(
+										champion.rosterID,
+										currentYear,
+										leagueTeamManagers
+									);
+
+								}
+
+							}}
+						>
 
 
 							<!-- =========================
@@ -678,14 +752,14 @@
 								<div class="trophyImages">
 
 
-									{#each champion.years as year}
+									{#each champion.years as winningYear}
 
 
 										<img
 											src="/TBB Trophy.png"
 											class="trophyIcon"
 											alt="Big Bowl trophy"
-											title={year}
+											title={winningYear}
 										/>
 
 
@@ -737,7 +811,7 @@
 
 
 			<!-- =========================
-			     YEAR-BY-YEAR AWARDS
+			     YEAR-BY-YEAR HISTORY
 			     ========================= -->
 
 			{#each podiums as podium}
