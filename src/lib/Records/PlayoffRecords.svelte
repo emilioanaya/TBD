@@ -75,6 +75,7 @@
                 ? await bracketResponse.json()
                 : [];
 
+
         const rosters =
             rostersResponse.ok
                 ? await rostersResponse.json()
@@ -439,11 +440,6 @@
 
         if (existing) {
 
-            /*
-             * Update instead of adding
-             * a duplicate.
-             */
-
             existing.madePlayoffs =
                 madePlayoffs;
 
@@ -545,26 +541,45 @@
 
         try {
 
+            /*
+             * Get every historical league.
+             */
+
+            const leagues =
+                await getHistoricalLeagues();
+
+
+            /*
+             * The current season is still
+             * in progress, so do not count it.
+             *
+             * 2023 -> COUNT
+             * 2024 -> COUNT
+             * 2025 -> COUNT
+             * 2026 -> DO NOT COUNT
+             */
+
             const currentSeason =
-    new Date().getFullYear();
-
-const historicalLeagues =
-    leagues.filter(
-        league =>
-            Number(league.season) <
-            currentSeason
-    );
+                new Date().getFullYear();
 
 
-/*
- * Oldest → newest.
- */
+            const historicalLeagues =
+                leagues.filter(
+                    league =>
+                        Number(league.season) <
+                        currentSeason
+                );
 
-historicalLeagues.sort(
-    (a, b) =>
-        Number(a.season) -
-        Number(b.season)
-);
+
+            /*
+             * Oldest → newest.
+             */
+
+            historicalLeagues.sort(
+                (a, b) =>
+                    Number(a.season) -
+                    Number(b.season)
+            );
 
 
             const rosterData =
@@ -642,20 +657,15 @@ historicalLeagues.sort(
              */
 
             for (
-    const league
-    of historicalLeagues
-) {
+                const league
+                of historicalLeagues
+            ) {
 
                 const year =
                     Number(
                         league.season
                     );
 
-
-                /*
-                 * Skip seasons for which
-                 * there are no records.
-                 */
 
                 const seasonRosterRecords =
                     historicalRosterYears[
@@ -699,12 +709,11 @@ historicalLeagues.sort(
 
 
                 /*
-                 * FIRST:
                  * Add EVERY roster to the
                  * team records.
                  *
-                 * This is what allows teams
-                 * with zero playoff appearances
+                 * This allows teams with
+                 * zero playoff appearances
                  * to appear.
                  */
 
@@ -781,9 +790,8 @@ historicalLeagues.sort(
 
 
                     /*
-                     * Find the existing
-                     * playoff record for
-                     * this roster/year.
+                     * Find existing
+                     * season record.
                      */
 
                     const seasonRecord =
@@ -1048,21 +1056,15 @@ historicalLeagues.sort(
                 );
 
 
-        /*
-         * IMPORTANT:
-         *
-         * Start from the most recent
-         * COMPLETED season.
-         *
-         * Do not count an unfinished
-         * current season as a missed
-         * playoff season.
-         */
-
         let currentStreak = 0;
 
         let currentDrought = 0;
 
+
+        /*
+         * Start with the latest
+         * COMPLETED season.
+         */
 
         for (
             let i =
@@ -1079,21 +1081,9 @@ historicalLeagues.sort(
                 season.madePlayoffs
             ) {
 
-                /*
-                 * Keep counting backward
-                 * until we hit a missed
-                 * playoff season.
-                 */
-
                 currentStreak++;
 
-
             } else {
-
-                /*
-                 * The first missed season
-                 * ends the current streak.
-                 */
 
                 break;
             }
@@ -1101,9 +1091,9 @@ historicalLeagues.sort(
 
 
         /*
-         * If the most recent completed
+         * If the latest completed
          * season was a missed playoff
-         * season, calculate the drought.
+         * season, calculate drought.
          */
 
         if (
@@ -1799,6 +1789,7 @@ historicalLeagues.sort(
                                 record.playoffWins +
                                 record.playoffLosses}
 
+
                             {@const winPercentage =
                                 totalGames
                                     ? (
@@ -1848,6 +1839,7 @@ historicalLeagues.sort(
                 </table>
 
             </div>
+
 
             <p class="note">
                 Sorted by playoff wins, then win percentage.
