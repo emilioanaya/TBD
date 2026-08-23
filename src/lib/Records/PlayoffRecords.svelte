@@ -48,6 +48,24 @@
 
 
     /* =========================
+       SLEEPER USERS
+       ========================= */
+
+    const getUsers = async (id) => {
+
+        const response = await fetch(
+            `https://api.sleeper.app/v1/league/${id}/users`
+        );
+
+        if (!response.ok) {
+            return [];
+        }
+
+        return await response.json();
+    };
+
+
+    /* =========================
        SLEEPER BRACKET
        ========================= */
 
@@ -84,54 +102,45 @@
 
 
     /* =========================
-       HISTORICAL TEAM
-       ========================= */
-
-    const getHistoricalTeam = (year, rosterID) => {
-
-        const yearData =
-            leagueTeamManagers?.teamManagersMap?.[year] ??
-            leagueTeamManagers?.teamManagersMap?.[String(year)];
-
-        if (!yearData) {
-            return null;
-        }
-
-        return (
-            yearData[rosterID] ??
-            yearData[String(rosterID)] ??
-            null
-        );
-    };
-
-
-    /* =========================
        TEAM NAME
        ========================= */
 
-    const getHistoricalTeamName = (historicalTeam) => {
+    const getUserTeamName = (user) => {
 
-        if (!historicalTeam) {
+        if (!user) {
             return null;
         }
 
+        /*
+         * Team name is normally stored
+         * in Sleeper user metadata.
+         */
+
         if (
-            historicalTeam.team &&
-            typeof historicalTeam.team === 'object' &&
-            historicalTeam.team.name
+            user.metadata &&
+            user.metadata.team_name
         ) {
-            return historicalTeam.team.name;
+            return user.metadata.team_name;
         }
 
         if (
-            historicalTeam.team &&
-            typeof historicalTeam.team === 'string'
+            user.metadata &&
+            user.metadata.teamName
         ) {
-            return historicalTeam.team;
+            return user.metadata.teamName;
         }
 
-        if (historicalTeam.teamName) {
-            return historicalTeam.teamName;
+        /*
+         * Fall back to the Sleeper
+         * display name / username.
+         */
+
+        if (user.display_name) {
+            return user.display_name;
+        }
+
+        if (user.user_name) {
+            return user.user_name;
         }
 
         return null;
@@ -139,125 +148,59 @@
 
 
     /* =========================
-       MANAGER IDENTITY
-       =========================
-
-       Sleeper roster IDs change every season.
-
-       Manager IDs do not.
-
-       We therefore use the manager ID(s)
-       as the primary historical team key.
-    */
-
-    const getManagerIDs = (historicalTeam) => {
-
-        if (!historicalTeam?.managers) {
-            return [];
-        }
-
-        let managers = historicalTeam.managers;
-
-        if (!Array.isArray(managers)) {
-            managers = [managers];
-        }
-
-        return managers
-            .map(manager => {
-
-                if (
-                    manager &&
-                    typeof manager === 'object'
-                ) {
-
-                    return (
-                        manager.user_id ??
-                        manager.managerID ??
-                        manager.id ??
-                        manager.userId ??
-                        null
-                    );
-
-                }
-
-                return manager;
-            })
-            .filter(
-                manager =>
-                    manager !== null &&
-                    manager !== undefined &&
-                    String(manager).length
-            )
-            .map(manager => String(manager))
-            .sort();
-    };
-
-
-    /* =========================
-       TEAM KEY
+       HISTORICAL TEAM MAP
        ========================= */
 
-    const getTeamKey = (year, rosterID) => {
+    const buildHistoricalTeams = (
+        rosters,
+        users
+    ) => {
 
-        const historicalTeam =
-            getHistoricalTeam(
-                year,
-                rosterID
-            );
+        const usersMap = {};
 
-        const managerIDs =
-            getManagerIDs(historicalTeam);
+        for (const user of users) {
 
-        /*
-         * Primary identity:
-         * manager IDs.
-         */
-
-        if (managerIDs.length) {
-            return `manager-${managerIDs.join('-')}`;
+            usersMap[
+                String(user.user_id)
+            ] = user;
         }
 
-        /*
-         * Fallback:
-         * team name.
-         */
 
-        const teamName =
-            getHistoricalTeamName(
-                historicalTeam
-            );
+        const result = {};
 
-        if (teamName) {
 
-            return `team-${teamName
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, '-')
-            }`;
+        for (const roster of rosters) {
+
+            const rosterID =
+                String(roster.roster_id);
+
+            const ownerID =
+                roster.owner_id
+                    ? String(roster.owner_id)
+                    : null;
+
+            const owner =
+                ownerID
+                    ? usersMap[ownerID]
+                    : null;
+
+
+            result[rosterID] = {
+
+                rosterID,
+
+                ownerID,
+
+                teamName:
+                    getUserTeamName(owner),
+
+                owner
+
+            };
         }
 
-        /*
-         * Last resort.
-         */
 
-        return `roster-${rosterID}`;
-    };
-
-
-    /* =========================
-       TEAM NAME
-       ========================= */
-
-    const getTeamName = (record) => {
-
-        if (
-            record?.teamName &&
-            !record.teamName.startsWith('Team ')
-        ) {
-            return record.teamName;
-        }
-
-        return 'Unknown Team';
+        return result;
     };
 
 
@@ -265,27 +208,38 @@
        PLAYOFF TEAMS
        ========================= */
 
-    const getPlayoffRosters = (bracket) => {
+    const getPlayoffRosters = (
+        bracket
+    ) => {
 
         const playoffRosters =
             new Set();
 
+
         for (const match of bracket) {
 
-            if (match.t1 !== undefined) {
+            if (
+                match.t1 !== undefined &&
+                match.t1 !== null
+            ) {
 
                 playoffRosters.add(
                     String(match.t1)
                 );
             }
 
-            if (match.t2 !== undefined) {
+
+            if (
+                match.t2 !== undefined &&
+                match.t2 !== null
+            ) {
 
                 playoffRosters.add(
                     String(match.t2)
                 );
             }
         }
+
 
         return playoffRosters;
     };
@@ -303,6 +257,7 @@
         let wins = 0;
         let losses = 0;
 
+
         for (const match of bracket) {
 
             const team1 =
@@ -317,6 +272,7 @@
             const loser =
                 String(match.l ?? '');
 
+
             if (
                 team1 !== String(rosterID) &&
                 team2 !== String(rosterID)
@@ -324,11 +280,13 @@
                 continue;
             }
 
+
             if (
                 winner === String(rosterID)
             ) {
                 wins++;
             }
+
 
             if (
                 loser === String(rosterID)
@@ -336,6 +294,7 @@
                 losses++;
             }
         }
+
 
         return {
             wins,
@@ -349,6 +308,8 @@
        ========================= */
 
     const addTeamSeason = ({
+        teamKey,
+        teamName,
         year,
         rosterID,
         seed,
@@ -359,27 +320,8 @@
         finals
     }) => {
 
-        const historicalTeam =
-            getHistoricalTeam(
-                year,
-                rosterID
-            );
-
-        const teamKey =
-            getTeamKey(
-                year,
-                rosterID
-            );
-
-        const historicalTeamName =
-            getHistoricalTeamName(
-                historicalTeam
-            );
-
-
         /*
-         * Create the all-time team
-         * record once.
+         * Create the all-time team record.
          */
 
         if (!teamRecords[teamKey]) {
@@ -389,7 +331,7 @@
                 teamKey,
 
                 teamName:
-                    historicalTeamName ||
+                    teamName ||
                     `Team ${rosterID}`,
 
                 seasons: [],
@@ -412,17 +354,11 @@
 
 
         /*
-         * Always prefer the real
-         * historical team name.
-         *
-         * Because seasons are processed
-         * oldest -> newest, a newer
-         * team name can replace an old
-         * one if necessary.
+         * Prefer the real team name.
          */
 
         if (
-            historicalTeamName &&
+            teamName &&
             (
                 !record.teamName ||
                 record.teamName.startsWith('Team ')
@@ -430,7 +366,7 @@
         ) {
 
             record.teamName =
-                historicalTeamName;
+                teamName;
         }
 
 
@@ -444,6 +380,7 @@
                     Number(season.year) ===
                     Number(year)
             );
+
 
         if (alreadyAdded) {
             return;
@@ -527,16 +464,41 @@
                     Number(league.season);
 
 
-                const bracket =
-                    await getBracket(
+                /*
+                 * Get this season's:
+                 *
+                 * - bracket
+                 * - rosters
+                 * - users
+                 *
+                 * We need users because owner_id
+                 * is the stable identity across
+                 * different roster IDs/seasons.
+                 */
+
+                const [
+                    bracket,
+                    rosters,
+                    users
+                ] = await Promise.all([
+
+                    getBracket(
                         league.league_id
-                    );
+                    ),
+
+                    getRosters(
+                        league.league_id
+                    ),
+
+                    getUsers(
+                        league.league_id
+                    )
+
+                ]);
 
 
                 /*
-                 * No bracket means there
-                 * isn't a completed playoff
-                 * record for that season.
+                 * No completed bracket.
                  */
 
                 if (
@@ -548,7 +510,7 @@
 
 
                 /*
-                 * Determine the final round.
+                 * Determine final round.
                  */
 
                 const rounds =
@@ -557,12 +519,13 @@
                             Number(match.r) || 0
                     );
 
+
                 const finalRound =
                     Math.max(...rounds);
 
 
                 /*
-                 * Find the championship game.
+                 * Find championship game.
                  */
 
                 const finalMatch =
@@ -592,7 +555,7 @@
 
 
                 /*
-                 * Championship participants.
+                 * Championship finalists.
                  */
 
                 const finalists =
@@ -600,7 +563,8 @@
 
 
                 if (
-                    finalMatch.t1 !== undefined
+                    finalMatch.t1 !== undefined &&
+                    finalMatch.t1 !== null
                 ) {
 
                     finalists.add(
@@ -610,7 +574,8 @@
 
 
                 if (
-                    finalMatch.t2 !== undefined
+                    finalMatch.t2 !== undefined &&
+                    finalMatch.t2 !== null
                 ) {
 
                     finalists.add(
@@ -619,16 +584,21 @@
                 }
 
 
-                const rosters =
-                    await getRosters(
-                        league.league_id
+                /*
+                 * Build this season's
+                 * roster -> owner map.
+                 */
+
+                const historicalTeams =
+                    buildHistoricalTeams(
+                        rosters,
+                        users
                     );
 
 
-                if (!rosters.length) {
-                    continue;
-                }
-
+                /*
+                 * Determine playoff teams.
+                 */
 
                 const playoffRosters =
                     getPlayoffRosters(
@@ -637,14 +607,60 @@
 
 
                 /*
-                 * Process EVERY roster from
-                 * THIS historical season.
+                 * Process EVERY roster.
                  */
 
-                for (const roster of rosters) {
+                for (
+                    const roster of rosters
+                ) {
 
                     const rosterID =
-                        String(roster.roster_id);
+                        String(
+                            roster.roster_id
+                        );
+
+
+                    const historicalTeam =
+                        historicalTeams[
+                            rosterID
+                        ];
+
+
+                    /*
+                     * IMPORTANT:
+                     *
+                     * owner_id is the stable
+                     * Sleeper identity.
+                     *
+                     * roster_id can change
+                     * every season.
+                     */
+
+                    let teamKey;
+
+
+                    if (
+                        historicalTeam?.ownerID
+                    ) {
+
+                        teamKey =
+                            `owner-${historicalTeam.ownerID}`;
+
+                    } else if (
+                        historicalTeam?.teamName
+                    ) {
+
+                        teamKey =
+                            `team-${historicalTeam.teamName
+                                .trim()
+                                .toLowerCase()
+                                .replace(/\s+/g, '-')}`;
+
+                    } else {
+
+                        teamKey =
+                            `roster-${rosterID}`;
+                    }
 
 
                     const madePlayoffs =
@@ -654,7 +670,7 @@
 
 
                     /*
-                     * Sleeper's regular-season
+                     * Sleeper regular-season
                      * finishing rank.
                      */
 
@@ -665,6 +681,7 @@
 
 
                     let wins = 0;
+
                     let losses = 0;
 
 
@@ -675,6 +692,7 @@
                                 rosterID,
                                 bracket
                             );
+
 
                         wins =
                             playoffRecord.wins;
@@ -697,6 +715,12 @@
 
                     addTeamSeason({
 
+                        teamKey,
+
+                        teamName:
+                            historicalTeam?.teamName ||
+                            null,
+
                         year,
 
                         rosterID,
@@ -712,6 +736,7 @@
                         champion,
 
                         finals
+
                     });
 
 
@@ -765,19 +790,18 @@
 
 
                             /*
-                             * The larger the seed
-                             * number, the lower the
-                             * seed.
+                             * Larger number =
+                             * lower seed.
                              *
                              * Example:
-                             * #4 is a lower seed than #1.
+                             * #4 is lower than #1.
                              */
 
                             if (
                                 lowestChampionshipSeed ===
-                                null ||
+                                    null ||
                                 seed >
-                                lowestChampionshipSeed
+                                    lowestChampionshipSeed
                             ) {
 
                                 lowestChampionshipSeed =
@@ -788,10 +812,6 @@
                 }
             }
 
-
-            /*
-             * Remove duplicate years.
-             */
 
             completedYears =
                 [
@@ -810,9 +830,11 @@
                 error
             );
 
+
             errorMessage =
                 error?.message ||
                 'Unable to load playoff records.';
+
 
         } finally {
 
@@ -825,7 +847,9 @@
        STREAK / DROUGHT
        ========================= */
 
-    const getStreakInfo = (record) => {
+    const getStreakInfo = (
+        record
+    ) => {
 
         const seasons =
             [...record.seasons]
@@ -842,8 +866,8 @@
 
 
         /*
-         * Work backward from the most
-         * recent completed season.
+         * Work backward from the
+         * most recent completed season.
          */
 
         for (
@@ -857,32 +881,24 @@
                 seasons[i].madePlayoffs
             ) {
 
-                /*
-                 * If we have already counted
-                 * a drought, stop.
-                 */
-
                 if (
                     currentDrought > 0
                 ) {
                     break;
                 }
 
+
                 currentStreak++;
 
-            } else {
 
-                /*
-                 * If we already have a
-                 * current playoff streak,
-                 * stop.
-                 */
+            } else {
 
                 if (
                     currentStreak > 0
                 ) {
                     break;
                 }
+
 
                 currentDrought++;
             }
@@ -911,6 +927,7 @@
             lastPlayoff:
                 lastPlayoff?.year ||
                 null
+
         };
     };
 
@@ -926,7 +943,9 @@
                 ...record,
 
                 streaks:
-                    getStreakInfo(record)
+                    getStreakInfo(
+                        record
+                    )
 
             }))
             .sort(
@@ -943,6 +962,7 @@
                         );
                     }
 
+
                     if (
                         b.playoffWins !==
                         a.playoffWins
@@ -953,6 +973,7 @@
                             a.playoffWins
                         );
                     }
+
 
                     return a.teamName
                         .localeCompare(
@@ -1019,7 +1040,8 @@
 
 
     /*
-     * Teams with an active drought.
+     * Teams currently experiencing
+     * a playoff drought.
      */
 
     $: teamsWithDrought =
@@ -1030,6 +1052,11 @@
         );
 
 
+    /*
+     * Multiple teams are returned if
+     * there is a tie.
+     */
+
     $: longestDroughtTeams =
         getLeaders(
             teamsWithDrought,
@@ -1038,7 +1065,7 @@
 
 
     /*
-     * Load.
+     * Load records.
      */
 
     loadRecords();
@@ -1272,9 +1299,7 @@
                         {#each mostPlayoffWins as leader}
 
                             <span class="leader">
-                                {getTeamName(
-                                    leader
-                                )}
+                                {leader.teamName}
                             </span>
 
                         {/each}
@@ -1310,9 +1335,7 @@
                         {#each mostPlayoffAppearances as leader}
 
                             <span class="leader">
-                                {getTeamName(
-                                    leader
-                                )}
+                                {leader.teamName}
                             </span>
 
                         {/each}
@@ -1348,9 +1371,7 @@
                         {#each getLeaders(teamList, 'championships') as leader}
 
                             <span class="leader">
-                                {getTeamName(
-                                    leader
-                                )}
+                                {leader.teamName}
                             </span>
 
                         {/each}
@@ -1511,9 +1532,7 @@
                             <tr>
 
                                 <td class="teamCell">
-                                    {getTeamName(
-                                        record
-                                    )}
+                                    {record.teamName}
                                 </td>
 
                                 <td>
@@ -1588,9 +1607,7 @@
                             <tr>
 
                                 <td class="teamCell">
-                                    {getTeamName(
-                                        record
-                                    )}
+                                    {record.teamName}
                                 </td>
 
 
