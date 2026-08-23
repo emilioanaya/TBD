@@ -87,7 +87,7 @@
 
 
     /* =========================
-       CURRENT TEAM NAME LOOKUP
+       CURRENT TEAM NAME
        ========================= */
 
     const getCurrentTeamName = (ownerID) => {
@@ -132,7 +132,7 @@
 
 
     /* =========================
-       CURRENT MANAGER LOOKUP
+       CURRENT MANAGER
        ========================= */
 
     const getCurrentManagerName = (
@@ -233,7 +233,7 @@
 
 
     /* =========================
-       CALCULATED HISTORICAL SEED
+       HISTORICAL SEED
        ========================= */
 
     const calculateHistoricalSeeds = ({
@@ -245,7 +245,7 @@
         const seedMap = {};
 
         /*
-         * First try Sleeper's own stored rank.
+         * First try Sleeper's stored seed.
          */
         for (
             const roster
@@ -264,7 +264,9 @@
             }
 
             const sleeperSeed =
-                getRosterSeed(roster);
+                getRosterSeed(
+                    roster
+                );
 
             if (sleeperSeed) {
 
@@ -275,8 +277,8 @@
 
 
         /*
-         * If every playoff team already
-         * has a Sleeper seed, we're done.
+         * If every playoff team has a
+         * seed, use those values.
          */
         if (
             playoffRosterIDs.size > 0 &&
@@ -289,20 +291,8 @@
 
 
         /*
-         * Otherwise calculate the seeds
-         * from the regular-season records.
-         *
-         * Primary:
-         *   Wins descending
-         *
-         * Secondary:
-         *   Losses ascending
-         *
-         * Third:
-         *   Ties descending
-         *
-         * Fourth:
-         *   Points For descending
+         * Fallback to regular-season
+         * standings.
          */
         const playoffTeams = [];
 
@@ -322,10 +312,6 @@
                 continue;
             }
 
-            /*
-             * If Sleeper already supplied
-             * a seed, preserve it.
-             */
             if (
                 seedMap[rosterID]
             ) {
@@ -379,9 +365,6 @@
         playoffTeams.sort(
             (a, b) => {
 
-                /*
-                 * Wins
-                 */
                 if (
                     b.wins !==
                     a.wins
@@ -393,10 +376,6 @@
                     );
                 }
 
-
-                /*
-                 * Losses
-                 */
                 if (
                     a.losses !==
                     b.losses
@@ -408,10 +387,6 @@
                     );
                 }
 
-
-                /*
-                 * Ties
-                 */
                 if (
                     b.ties !==
                     a.ties
@@ -423,10 +398,6 @@
                     );
                 }
 
-
-                /*
-                 * Points For
-                 */
                 if (
                     b.fpts !==
                     a.fpts
@@ -438,7 +409,6 @@
                     );
                 }
 
-
                 return (
                     Number(a.rosterID) -
                     Number(b.rosterID)
@@ -447,17 +417,12 @@
         );
 
 
-        /*
-         * Determine the first seed that
-         * still needs to be assigned.
-         */
         const usedSeeds =
             new Set(
                 Object.values(
                     seedMap
                 )
             );
-
 
         let nextSeed = 1;
 
@@ -775,25 +740,10 @@
 
 
     /* =========================
-       EXISTING PLAYOFF DATA
+       SEED RECORD
        ========================= */
 
-    const getExistingRosterData = () => {
-
-        return (
-            playoffData?.leagueRosterRecords ||
-            {}
-        );
-    };
-
-
-    /* =========================
-       ENSURE SEED
-       ========================= */
-
-    const ensureSeed = (
-        seed
-    ) => {
+    const ensureSeed = (seed) => {
 
         if (!seed) {
             return null;
@@ -802,21 +752,19 @@
         const key =
             String(seed);
 
-        if (
-            !seedRecords[key]
-        ) {
+        if (!seedRecords[key]) {
 
             seedRecords[key] = {
 
                 seed,
 
-                playoffAppearances: 0,
-
                 playoffWins: 0,
 
                 playoffLosses: 0,
 
-                championshipAppearances: 0,
+                semifinalAppearances: 0,
+
+                finalAppearances: 0,
 
                 championships: 0
 
@@ -833,22 +781,19 @@
 
     const processSeedRecords = ({
         bracket,
-        rosterMap,
-        rosters,
-        seasonRosterRecords
+        rosterMap
     }) => {
 
         if (
             !bracket ||
             !bracket.length
         ) {
-
             return;
         }
 
+
         /*
-         * Find every roster that appears
-         * in the playoff bracket.
+         * Find every playoff roster.
          */
         const playoffRosterIDs =
             new Set();
@@ -883,70 +828,149 @@
 
 
         /*
-         * Get seeds, using Sleeper data
-         * first and calculated standings
-         * as a fallback.
+         * Get the seed for every
+         * playoff roster.
          */
-        const rosterSeeds =
-            calculateHistoricalSeeds({
-
-                rosters,
-
-                playoffRosterIDs,
-
-                seasonRosterRecords
-
-            });
-
-
-        /*
-         * Count each seed's playoff
-         * appearance once for the season.
-         */
-        const appearanceSeeds =
-            new Set();
+        const rosterSeeds = {};
 
         for (
             const rosterID
             of playoffRosterIDs
         ) {
 
-            const seed =
-                rosterSeeds[
+            const roster =
+                rosterMap[
                     String(rosterID)
                 ];
 
-            if (!seed) {
+            if (!roster) {
                 continue;
             }
 
-            appearanceSeeds.add(
-                String(seed)
-            );
+            const seed =
+                getRosterSeed(
+                    roster
+                );
+
+            if (seed) {
+
+                rosterSeeds[
+                    String(rosterID)
+                ] = seed;
+            }
+        }
+
+
+        /*
+         * Determine final round.
+         */
+        const rounds =
+            bracket
+                .map(
+                    match =>
+                        Number(match.r)
+                )
+                .filter(
+                    round =>
+                        Number.isFinite(
+                            round
+                        )
+                );
+
+        if (!rounds.length) {
+            return;
+        }
+
+        const finalRound =
+            Math.max(...rounds);
+
+        const semifinalRound =
+            finalRound - 1;
+
+
+        /*
+         * =========================
+         * SEMIFINAL APPEARANCES
+         * =========================
+         */
+
+        const semifinalSeeds =
+            new Set();
+
+        for (
+            const match
+            of bracket
+        ) {
+
+            if (
+                Number(match.r) !==
+                semifinalRound
+            ) {
+
+                continue;
+            }
+
+            if (
+                match.t1 !== undefined &&
+                match.t1 !== null &&
+                typeof match.t1 !== 'object'
+            ) {
+
+                const seed =
+                    rosterSeeds[
+                        String(match.t1)
+                    ];
+
+                if (seed) {
+
+                    semifinalSeeds.add(
+                        seed
+                    );
+                }
+            }
+
+            if (
+                match.t2 !== undefined &&
+                match.t2 !== null &&
+                typeof match.t2 !== 'object'
+            ) {
+
+                const seed =
+                    rosterSeeds[
+                        String(match.t2)
+                    ];
+
+                if (seed) {
+
+                    semifinalSeeds.add(
+                        seed
+                    );
+                }
+            }
         }
 
 
         for (
             const seed
-            of appearanceSeeds
+            of semifinalSeeds
         ) {
 
             const record =
-                ensureSeed(
-                    Number(seed)
-                );
+                ensureSeed(seed);
 
-            if (!record) {
-                continue;
+            if (record) {
+
+                record.semifinalAppearances++;
             }
-
-            record.playoffAppearances++;
         }
 
 
         /*
-         * Process every actual
-         * playoff matchup.
+         * =========================
+         * PLAYOFF W/L
+         * =========================
+         *
+         * BYES DO NOT COUNT.
          */
         for (
             const match
@@ -963,21 +987,17 @@
                 continue;
             }
 
-            /*
-             * A matchup without a winner
-             * is not a completed game.
-             */
             if (
-                match.w === undefined ||
-                match.w === null
+                typeof match.t1 === 'object' ||
+                typeof match.t2 === 'object'
             ) {
 
                 continue;
             }
 
             if (
-                typeof match.t1 === 'object' ||
-                typeof match.t2 === 'object'
+                match.w === undefined ||
+                match.w === null
             ) {
 
                 continue;
@@ -1007,7 +1027,7 @@
 
 
             /*
-             * Winner gets a W.
+             * Winner
              */
             const winnerSeed =
                 rosterSeeds[
@@ -1029,7 +1049,7 @@
 
 
             /*
-             * Loser gets an L.
+             * Loser
              */
             const loserSeed =
                 rosterSeeds[
@@ -1048,10 +1068,90 @@
                     record.playoffLosses++;
                 }
             }
+
+
+            /*
+             * =========================
+             * FINAL APPEARANCES
+             * =========================
+             */
+
+            if (
+                Number(match.r) ===
+                finalRound
+            ) {
+
+                const seed1 =
+                    rosterSeeds[
+                        team1
+                    ];
+
+                const seed2 =
+                    rosterSeeds[
+                        team2
+                    ];
+
+
+                if (seed1) {
+
+                    const record =
+                        ensureSeed(
+                            seed1
+                        );
+
+                    if (record) {
+
+                        record.finalAppearances++;
+                    }
+                }
+
+
+                if (seed2) {
+
+                    const record =
+                        ensureSeed(
+                            seed2
+                        );
+
+                    if (record) {
+
+                        record.finalAppearances++;
+                    }
+                }
+
+
+                /*
+                 * Championship
+                 */
+                const championSeed =
+                    rosterSeeds[
+                        winner
+                    ];
+
+                if (championSeed) {
+
+                    const record =
+                        ensureSeed(
+                            championSeed
+                        );
+
+                    if (record) {
+
+                        record.championships++;
+
+                        if (
+                            lowestChampionshipSeed === null ||
+                            championSeed >
+                                lowestChampionshipSeed
+                        ) {
+
+                            lowestChampionshipSeed =
+                                championSeed;
+                        }
+                    }
+                }
+            }
         }
-
-
-        return rosterSeeds;
     };
 
 
@@ -1076,16 +1176,12 @@
 
         try {
 
-            /*
-             * Get every historical league.
-             */
             const leagues =
                 await getHistoricalLeagues();
 
 
             /*
-             * Current season is still in
-             * progress, so don't count it.
+             * Current season is not counted.
              */
             const currentSeason =
                 new Date().getFullYear();
@@ -1093,14 +1189,12 @@
             const historicalLeagues =
                 leagues.filter(
                     league =>
-                        Number(league.season) <
-                        currentSeason
+                        Number(
+                            league.season
+                        ) < currentSeason
                 );
 
 
-            /*
-             * Oldest → newest.
-             */
             historicalLeagues.sort(
                 (a, b) =>
                     Number(a.season) -
@@ -1108,8 +1202,12 @@
             );
 
 
+            /*
+             * Existing roster records.
+             */
             const rosterData =
-                getExistingRosterData();
+                playoffData?.leagueRosterRecords ||
+                {};
 
 
             /*
@@ -1174,8 +1272,7 @@
 
 
             /*
-             * Process every historical
-             * league.
+             * Process each historical season.
              */
             for (
                 const league
@@ -1222,8 +1319,8 @@
 
 
                 /*
-                 * Add EVERY roster to the
-                 * team records.
+                 * Add EVERY roster to team
+                 * records.
                  */
                 for (
                     const roster
@@ -1264,27 +1361,20 @@
 
 
                 /*
-                 * =========================
-                 * SEED RECORDS
-                 * =========================
+                 * Process the seed records
+                 * separately.
                  */
-                const rosterSeeds =
-                    processSeedRecords({
+                processSeedRecords({
 
-                        bracket,
+                    bracket,
 
-                        rosterMap,
+                    rosterMap
 
-                        rosters,
-
-                        seasonRosterRecords
-
-                    });
+                });
 
 
                 /*
-                 * Add every team a season
-                 * record — playoff or not.
+                 * Add every team season.
                  */
                 for (
                     const roster
@@ -1311,10 +1401,6 @@
                         );
 
 
-                    /*
-                     * Find existing season
-                     * record.
-                     */
                     const seasonRecord =
                         seasonRosterRecords.find(
                             record =>
@@ -1325,11 +1411,6 @@
                         );
 
 
-                    /*
-                     * Existing Records data
-                     * contains the playoff W/L
-                     * information we already use.
-                     */
                     const wins =
                         madePlayoffs
                             ? Number(
@@ -1356,13 +1437,7 @@
                         );
 
 
-                    /*
-                     * Use the calculated seed.
-                     */
                     const seed =
-                        rosterSeeds[
-                            rosterID
-                        ] ||
                         getRosterSeed(
                             roster
                         ) ||
@@ -1388,49 +1463,6 @@
                         seed
 
                     });
-
-
-                    /*
-                     * Championship information
-                     * for the seed.
-                     */
-                    if (
-                        madePlayoffs &&
-                        seed
-                    ) {
-
-                        const seedRecord =
-                            ensureSeed(
-                                seed
-                            );
-
-                        if (!seedRecord) {
-                            continue;
-                        }
-
-                        if (finals) {
-
-                            seedRecord
-                                .championshipAppearances++;
-                        }
-
-                        if (champion) {
-
-                            seedRecord
-                                .championships++;
-
-                            if (
-                                lowestChampionshipSeed ===
-                                    null ||
-                                seed >
-                                    lowestChampionshipSeed
-                            ) {
-
-                                lowestChampionshipSeed =
-                                    seed;
-                            }
-                        }
-                    }
                 }
 
 
@@ -1441,9 +1473,8 @@
 
 
             /*
-             * Make sure every team has a
-             * season entry for every
-             * historical season.
+             * Make sure all teams have
+             * historical season entries.
              */
             const uniqueYears =
                 [
@@ -1551,10 +1582,6 @@
         let currentDrought = 0;
 
 
-        /*
-         * Start with the latest
-         * completed season.
-         */
         for (
             let i =
                 seasons.length - 1;
@@ -1578,10 +1605,6 @@
         }
 
 
-        /*
-         * If latest season was a miss,
-         * calculate drought.
-         */
         if (
             currentStreak === 0
         ) {
@@ -1606,9 +1629,6 @@
         }
 
 
-        /*
-         * Last playoff appearance.
-         */
         const lastPlayoff =
             [...seasons]
                 .reverse()
@@ -1637,6 +1657,7 @@
        ========================= */
 
     let teamList = $derived(
+
         Object.values(
             teamRecords
         )
@@ -1656,7 +1677,7 @@
                 (a, b) => {
 
                     /*
-                     * 1. Most playoff wins
+                     * Most playoff wins
                      */
                     if (
                         b.playoffWins !==
@@ -1671,7 +1692,7 @@
 
 
                     /*
-                     * 2. Best win %
+                     * Best win percentage
                      */
                     const aGames =
                         a.playoffWins +
@@ -1706,7 +1727,7 @@
 
 
                     /*
-                     * 3. Most appearances
+                     * Most appearances
                      */
                     if (
                         b.playoffAppearances !==
@@ -1734,6 +1755,7 @@
        ========================= */
 
     let playoffHistoryList = $derived(
+
         [...teamList].sort(
             (a, b) => {
 
@@ -1747,6 +1769,7 @@
                         a.playoffAppearances
                     );
                 }
+
 
                 const aLast =
                     a.streaks?.lastPlayoff ||
@@ -1767,6 +1790,7 @@
                     );
                 }
 
+
                 if (
                     b.streaks.currentStreak !==
                     a.streaks.currentStreak
@@ -1777,6 +1801,7 @@
                         a.streaks.currentStreak
                     );
                 }
+
 
                 return a.teamName
                     .localeCompare(
@@ -1847,7 +1872,7 @@
 
 
     /*
-     * Load once.
+     * Load records.
      */
     loadRecords();
 
@@ -1934,7 +1959,7 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 600px;
+        min-width: 650px;
     }
 
     th,
@@ -2166,10 +2191,6 @@
                                 </th>
 
                                 <th>
-                                    Playoff Apps.
-                                </th>
-
-                                <th>
                                     W
                                 </th>
 
@@ -2182,7 +2203,11 @@
                                 </th>
 
                                 <th>
-                                    Big Bowl Apps.
+                                    Semifinal Apps.
+                                </th>
+
+                                <th>
+                                    Final Apps.
                                 </th>
 
                                 <th>
@@ -2221,10 +2246,6 @@
                                     </td>
 
                                     <td>
-                                        {seed.playoffAppearances}
-                                    </td>
-
-                                    <td>
                                         {seed.playoffWins}
                                     </td>
 
@@ -2237,7 +2258,11 @@
                                     </td>
 
                                     <td>
-                                        {seed.championshipAppearances}
+                                        {seed.semifinalAppearances}
+                                    </td>
+
+                                    <td>
+                                        {seed.finalAppearances}
                                     </td>
 
                                     <td>
