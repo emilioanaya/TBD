@@ -633,15 +633,25 @@
        ========================= */
 
     .mvpBadge {
-        display: inline-block;
-        margin-left: 4px;
-        font-size: 0.85em;
-    }
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.58em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
 
+    color: var(--blueOne);
+    border: 1px solid var(--blueOne);
+    background-color: var(--fff);
 
-    .mvpChip {
-        font-weight: 700;
-    }
+    vertical-align: middle;
+}
+
+.mvpChip {
+    font-weight: 700;
+    color: var(--blueOne);
+}
 
 
     /* =========================
@@ -811,14 +821,12 @@
                                 )}
 
                                 {#if getMVPCount(player) > 0}
-
                                     <span
                                         class="mvpBadge"
                                         title="Big Bowl MVP"
                                     >
-                                        ⭐
+                                        MVP
                                     </span>
-
                                 {/if}
 
                             </div>
@@ -877,13 +885,13 @@
                                         )}
 
                                         {#if isMVP(
-                                            player.playerID,
-                                            historyEntry.year
-                                        )}
+    player.playerID,
+    historyEntry.year
+)}
 
-                                            ⭐ MVP
+    · MVP
 
-                                        {/if}
+{/if}
 
                                     </div>
 
