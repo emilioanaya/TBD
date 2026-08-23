@@ -232,6 +232,10 @@
             <option value="player">
                 👤 Player Records
             </option>
+            
+            <option value="playoff">
+                🏆 Playoff Records
+            </option>
 
             <option value="draft">
                 🎓 Draft Records
