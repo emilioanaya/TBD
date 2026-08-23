@@ -1,8 +1,10 @@
 <script>
     import Button, { Group, Label } from '@smui/button';
     import { getLeagueRecords, getLeagueTransactions } from '$lib/utils/helper';
+
     import AllTimeRecords from './AllTimeRecords.svelte';
     import PerSeasonRecords from './PerSeasonRecords.svelte';
+    import ChampionshipPlayers from './ChampionshipPlayers.svelte';
 
     let {leagueData, totals, stale, leagueTeamManagers} = $props();
 
@@ -26,28 +28,50 @@
     const refreshRecords = async () => {
         const newRecords = await getLeagueRecords(true);
 
-        // update values with new data
         leagueData = newRecords;
     }
 
     let key = $state("regularSeasonData");
 
     $effect(() => {
+
         if(!leagueData || !leagueData[key]) return;
 
         const selectedLeagueData = leagueData[key];
 
-        leagueManagerRecords = selectedLeagueData.leagueManagerRecords;
-        leagueRosterRecords = selectedLeagueData.leagueRosterRecords;
-        leagueWeekHighs = selectedLeagueData.leagueWeekHighs;
-        leagueWeekLows = selectedLeagueData.leagueWeekLows;
-        allTimeClosestMatchups = selectedLeagueData.allTimeClosestMatchups;
-        allTimeBiggestBlowouts = selectedLeagueData.allTimeBiggestBlowouts;
-        mostSeasonLongPoints = selectedLeagueData.mostSeasonLongPoints;
-        leastSeasonLongPoints = selectedLeagueData.leastSeasonLongPoints;
-        seasonWeekRecords = selectedLeagueData.seasonWeekRecords;
-        currentYear = selectedLeagueData.currentYear;
-        lastYear = selectedLeagueData.lastYear;
+        leagueManagerRecords =
+            selectedLeagueData.leagueManagerRecords;
+
+        leagueRosterRecords =
+            selectedLeagueData.leagueRosterRecords;
+
+        leagueWeekHighs =
+            selectedLeagueData.leagueWeekHighs;
+
+        leagueWeekLows =
+            selectedLeagueData.leagueWeekLows;
+
+        allTimeClosestMatchups =
+            selectedLeagueData.allTimeClosestMatchups;
+
+        allTimeBiggestBlowouts =
+            selectedLeagueData.allTimeBiggestBlowouts;
+
+        mostSeasonLongPoints =
+            selectedLeagueData.mostSeasonLongPoints;
+
+        leastSeasonLongPoints =
+            selectedLeagueData.leastSeasonLongPoints;
+
+        seasonWeekRecords =
+            selectedLeagueData.seasonWeekRecords;
+
+        currentYear =
+            selectedLeagueData.currentYear;
+
+        lastYear =
+            selectedLeagueData.lastYear;
+
     });
 
     if(stale) {
@@ -60,11 +84,20 @@
 
     let display = $state("allTime");
 
-    // Main Records category
+    /*
+     * Main Records category
+     *
+     * team   = existing Team Records
+     * player = Championship Player Records
+     * draft  = future Draft Records
+     */
     let recordCategory = $state("team");
+
 </script>
 
+
 <style>
+
     .rankingsWrapper {
         margin: 0 auto;
         width: 100%;
@@ -76,113 +109,181 @@
         text-align: center;
     }
 
+
     /* =========================
        MAIN RECORD CATEGORY
        ========================= */
 
     .categoryHolder {
+
         display: flex;
+
         justify-content: center;
+
         align-items: center;
+
         margin: 2em auto 1.5em;
+
         padding: 0 15px;
+
     }
+
 
     .categorySelect {
+
         width: 100%;
+
         max-width: 360px;
+
         padding: 12px 40px 12px 15px;
+
         font-size: 1em;
+
         font-weight: 600;
+
         border: 1px solid var(--bbb);
+
         border-radius: 8px;
+
         background-color: var(--fff);
+
         color: var(--g555);
+
         cursor: pointer;
-        appearance: auto;
+
     }
 
+
     .categorySelect:focus {
+
         outline: none;
+
         border-color: var(--blueOne);
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+
     }
+
 
     /* =========================
        EXISTING BUTTONS
        ========================= */
 
     .buttonHolder {
+
         text-align: center;
+
         margin: 1em 0 0;
+
     }
 
-    /* Start button resizing */
 
     @media (max-width: 540px) {
+
         :global(.buttonHolder .selectionButtons) {
+
             font-size: 0.6em;
+
         }
 
         .categorySelect {
+
             max-width: 320px;
+
             font-size: 0.9em;
+
         }
+
     }
+
 
     @media (max-width: 415px) {
+
         :global(.buttonHolder .selectionButtons) {
+
             font-size: 0.5em;
+
             padding: 0 6px;
+
         }
 
         .categorySelect {
+
             max-width: 290px;
+
             font-size: 0.85em;
+
         }
+
     }
+
 
     @media (max-width: 315px) {
+
         :global(.buttonHolder .selectionButtons) {
+
             font-size: 0.45em;
+
             padding: 0 3px;
+
         }
 
         .categorySelect {
+
             max-width: 260px;
+
             font-size: 0.8em;
+
         }
+
     }
 
-    /* End button resizing */
 
     /* =========================
-       FUTURE RECORD SECTIONS
+       DRAFT PLACEHOLDER
        ========================= */
 
     .comingSoon {
+
         width: 90%;
+
         max-width: 700px;
+
         margin: 5em auto;
+
         padding: 3em 1.5em;
+
         text-align: center;
+
         background-color: var(--fff);
+
         border: 1px solid var(--ddd);
+
         box-shadow: 0 0 8px 2px var(--ccc);
+
         border-radius: 8px;
+
     }
+
 
     .comingSoon h2 {
+
         margin: 0 0 0.5em;
+
     }
+
 
     .comingSoon p {
+
         margin: 0;
+
         color: var(--g555);
+
     }
+
 </style>
 
+
 <div class="rankingsWrapper">
+
 
     <!-- =========================
          MAIN RECORD CATEGORY
@@ -195,9 +296,19 @@
             bind:value={recordCategory}
             aria-label="Record category"
         >
-            <option value="team">🏟️ Team Records</option>
-            <option value="player">👤 Player Records</option>
-            <option value="draft">🎓 Draft Records</option>
+
+            <option value="team">
+                🏟️ Team Records
+            </option>
+
+            <option value="player">
+                👤 Player Records
+            </option>
+
+            <option value="draft">
+                🎓 Draft Records
+            </option>
+
         </select>
 
     </div>
@@ -209,46 +320,91 @@
 
     {#if recordCategory === "team"}
 
+
         <div class="buttonHolder">
 
             <Group variant="outlined">
 
                 <Button
                     class="selectionButtons"
-                    onclick={() => key = "regularSeasonData"}
-                    variant="{key == "regularSeasonData" ? "raised" : "outlined"}"
+                    onclick={() =>
+                        key = "regularSeasonData"
+                    }
+                    variant={
+                        key == "regularSeasonData"
+                            ? "raised"
+                            : "outlined"
+                    }
                 >
-                    <Label>Regular Season</Label>
+
+                    <Label>
+                        Regular Season
+                    </Label>
+
                 </Button>
+
 
                 <Button
                     class="selectionButtons"
-                    onclick={() => key = "playoffData"}
-                    variant="{key == "playoffData" ? "raised" : "outlined"}"
+                    onclick={() =>
+                        key = "playoffData"
+                    }
+                    variant={
+                        key == "playoffData"
+                            ? "raised"
+                            : "outlined"
+                    }
                 >
-                    <Label>Playoffs</Label>
+
+                    <Label>
+                        Playoffs
+                    </Label>
+
                 </Button>
 
             </Group>
 
+
             <br />
+
 
             <Group variant="outlined">
 
                 <Button
                     class="selectionButtons"
-                    onclick={() => display = "allTime"}
-                    variant="{display == "allTime" ? "raised" : "outlined"}"
+                    onclick={() =>
+                        display = "allTime"
+                    }
+                    variant={
+                        display == "allTime"
+                            ? "raised"
+                            : "outlined"
+                    }
                 >
-                    <Label>All-Time Records</Label>
+
+                    <Label>
+                        All-Time Records
+                    </Label>
+
                 </Button>
+
 
                 <Button
                     class="selectionButtons"
-                    onclick={() => display = "season"}
-                    variant="{display == "season" ? "raised" : "outlined"}"
+                    onclick={() =>
+                        display = "season"
+                    }
+                    variant={
+                        display == "season"
+                            ? "raised"
+                            : "outlined"
+                    }
                 >
-                    <Label>Season Records</Label>
+
+                    <Label>
+                        Season Records
+                    </Label>
+
                 </Button>
 
             </Group>
@@ -281,6 +437,7 @@
 
             {/if}
 
+
         {:else}
 
             <PerSeasonRecords
@@ -302,16 +459,9 @@
 
     {:else if recordCategory === "player"}
 
-        <div class="comingSoon">
-
-            <h2>👤 Player Records</h2>
-
-            <p>
-                Championship players, MVPs, player history,
-                and player search will go here.
-            </p>
-
-        </div>
+        <ChampionshipPlayers
+            {leagueTeamManagers}
+        />
 
 
     <!-- =========================
@@ -322,11 +472,13 @@
 
         <div class="comingSoon">
 
-            <h2>🎓 Draft Records</h2>
+            <h2>
+                🎓 Draft Records
+            </h2>
 
             <p>
-                Draft history, draft picks, rounds,
-                and player draft records will go here.
+                Draft statistics and historical
+                draft analysis will go here.
             </p>
 
         </div>
