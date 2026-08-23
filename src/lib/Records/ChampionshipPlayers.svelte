@@ -13,10 +13,13 @@
 
     export let leagueTeamManagers;
 
-    let playersData = null;
+    let playersData = {};
     let awardsData = [];
+
     let championshipPlayers = [];
+    let alphabeticalPlayers = [];
     let filteredPlayers = [];
+
     let searchTerm = "";
     let loading = true;
     let errorMessage = "";
@@ -51,7 +54,7 @@
 
 
     /* =========================
-       PLAYER LOOKUP
+       PLAYER DATA
        ========================= */
 
     const getPlayer = (playerID) => {
@@ -67,6 +70,16 @@
     };
 
 
+    /*
+     * Your /api/fetch_players_info endpoint
+     * stores player names as:
+     *
+     * fn = first name
+     * ln = last name
+     * pos = position
+     * t = NFL team
+     */
+
     const getPlayerName = (playerID) => {
         const player = getPlayer(playerID);
 
@@ -74,57 +87,27 @@
             return `Player ${playerID}`;
         }
 
-        /*
-         * Sleeper normally provides full_name.
-         * Fall back to first_name + last_name
-         * if full_name isn't available.
-         */
-
-        if (player.full_name) {
-            return player.full_name;
-        }
-
-        const firstName =
-            player.first_name ||
-            player.firstName ||
-            "";
-
-        const lastName =
-            player.last_name ||
-            player.lastName ||
-            "";
+        const firstName = player.fn || "";
+        const lastName = player.ln || "";
 
         const fullName =
             `${firstName} ${lastName}`.trim();
 
-        if (fullName) {
-            return fullName;
-        }
-
-        /*
-         * Additional fallback in case the player
-         * data uses a different name field.
-         */
-
-        if (player.name) {
-            return player.name;
-        }
-
-        return `Player ${playerID}`;
+        return fullName || `Player ${playerID}`;
     };
 
 
     const getPlayerPosition = (playerID) => {
         const player = getPlayer(playerID);
 
-        return player?.position || "";
+        return player?.pos || "";
     };
 
 
     const getPlayerTeam = (playerID) => {
         const player = getPlayer(playerID);
 
-        return player?.team || "";
+        return player?.t || "";
     };
 
 
@@ -134,7 +117,7 @@
 
 
     /* =========================
-       PROCESS CHAMPIONSHIP DATA
+       LOAD CHAMPIONSHIP PLAYERS
        ========================= */
 
     const processChampionshipPlayers = async () => {
@@ -143,11 +126,6 @@
         errorMessage = "";
 
         try {
-
-            /*
-             * Load the Sleeper player database and
-             * championship history at the same time.
-             */
 
             const [
                 playersResponse,
@@ -168,14 +146,8 @@
 
 
             /* =========================
-               BUILD LEAGUE HISTORY
+               GET ALL LEAGUE SEASONS
                ========================= */
-
-            /*
-             * IMPORTANT:
-             * Use the imported leagueID directly.
-             * Do NOT overwrite it.
-             */
 
             let currentLeague = null;
 
@@ -199,14 +171,6 @@
 
             }
 
-
-            /*
-             * Map:
-             *
-             * 2025 -> 2025 Sleeper league ID
-             * 2024 -> 2024 Sleeper league ID
-             * 2023 -> 2023 Sleeper league ID
-             */
 
             const leagueIDsByYear = {};
 
@@ -258,7 +222,7 @@
                     } catch (error) {
 
                         console.error(
-                            "Unable to load previous Sleeper league:",
+                            "Unable to load previous league:",
                             error
                         );
 
@@ -269,7 +233,7 @@
 
 
             /* =========================
-               CHAMPIONSHIP ROSTERS
+               FIND PLAYERS ON CHAMPIONSHIP ROSTERS
                ========================= */
 
             for (const award of awardsData) {
@@ -288,7 +252,6 @@
                 const championRosterID =
                     String(award.champion);
 
-
                 const seasonLeagueID =
                     leagueIDsByYear[year];
 
@@ -296,17 +259,12 @@
                 if (!seasonLeagueID) {
 
                     console.warn(
-                        `No Sleeper league ID found for ${year}`
+                        `No Sleeper league found for ${year}`
                     );
 
                     continue;
                 }
 
-
-                /*
-                 * Get the actual roster data from
-                 * Sleeper for that season.
-                 */
 
                 const rosterData =
                     await getLeagueRosters(
@@ -323,7 +281,7 @@
                 if (!championRoster) {
 
                     console.warn(
-                        `No championship roster found for ${year}`,
+                        `No champion roster found for ${year}`,
                         {
                             seasonLeagueID,
                             championRosterID
@@ -333,11 +291,6 @@
                     continue;
                 }
 
-
-                /*
-                 * Sleeper's roster contains the
-                 * players who were on that roster.
-                 */
 
                 const rosterPlayers =
                     championRoster.players || [];
@@ -391,16 +344,12 @@
 
 
             /* =========================
-               SORT PLAYERS
+               CHAMPIONSHIP RANKING
                ========================= */
 
             championshipPlayers =
                 Object.values(playerMap)
                     .sort((a, b) => {
-
-                        /*
-                         * Most championships first.
-                         */
 
                         if (
                             b.championships !==
@@ -414,11 +363,6 @@
 
                         }
 
-
-                        /*
-                         * Then alphabetical.
-                         */
-
                         return getPlayerName(
                             a.playerID
                         ).localeCompare(
@@ -430,15 +374,24 @@
                     });
 
 
-            /*
-             * Initially show only the top 10.
-             */
+            /* =========================
+               ALPHABETICAL LIST
+               ========================= */
 
-            filteredPlayers =
-                championshipPlayers.slice(
-                    0,
-                    10
-                );
+            alphabeticalPlayers =
+                [...championshipPlayers]
+                    .sort((a, b) =>
+                        getPlayerName(
+                            a.playerID
+                        ).localeCompare(
+                            getPlayerName(
+                                b.playerID
+                            )
+                        )
+                    );
+
+
+            updateSearch();
 
         } catch (error) {
 
@@ -472,33 +425,23 @@
                 .toLowerCase();
 
 
-        /*
-         * No search:
-         * show top 10.
-         */
-
         if (!search) {
 
+            /*
+             * No search = show everyone in
+             * alphabetical order.
+             */
+
             filteredPlayers =
-                championshipPlayers.slice(
-                    0,
-                    10
-                );
+                alphabeticalPlayers;
 
             return;
 
         }
 
 
-        /*
-         * Search by:
-         * - player name
-         * - position
-         * - NFL team
-         */
-
         filteredPlayers =
-            championshipPlayers.filter(
+            alphabeticalPlayers.filter(
                 (player) => {
 
                     const name =
@@ -534,6 +477,9 @@
     };
 
 
+    $: updateSearch();
+
+
     /* =========================
        HISTORY
        ========================= */
@@ -541,6 +487,12 @@
     const getHistoryTeamName = (
         historyEntry
     ) => {
+
+        /*
+         * IMPORTANT:
+         * This is intentionally NOT async.
+         * That prevents [object Promise].
+         */
 
         return getTeamNameFromTeamManagers(
             leagueTeamManagers,
@@ -564,18 +516,6 @@
     };
 
 
-    /*
-     * Re-run search whenever the
-     * search box changes.
-     */
-
-    $: updateSearch();
-
-
-    /*
-     * Start loading the data.
-     */
-
     processChampionshipPlayers();
 
 </script>
@@ -584,28 +524,46 @@
 <style>
 
     .playerRecords {
+
         width: 94%;
-        max-width: 1000px;
+
+        max-width: 900px;
+
         margin: 1.5em auto 4em;
+
     }
 
 
+    /* =========================
+       HEADER
+       ========================= */
+
     .header {
+
         text-align: center;
+
         margin-bottom: 1em;
+
     }
 
 
     .header h2 {
+
         margin: 0;
+
         font-size: 1.5em;
+
     }
 
 
     .header p {
+
         margin: 0.3em 0 0;
+
         color: var(--g777);
+
         font-size: 0.8em;
+
     }
 
 
@@ -614,95 +572,112 @@
        ========================= */
 
     .searchHolder {
+
         width: 100%;
+
         max-width: 500px;
-        margin: 0 auto 1.2em;
+
+        margin: 0 auto 1em;
+
     }
 
 
     .search {
+
         width: 100%;
+
         box-sizing: border-box;
 
-        padding: 9px 13px;
+        padding: 8px 12px;
 
         border: 1px solid var(--bbb);
 
         border-radius: 7px;
 
-        font-size: 0.9em;
+        font-size: 0.85em;
 
         background-color: var(--fff);
 
         color: var(--g333);
+
     }
 
 
     .search:focus {
+
         outline: none;
+
         border-color: var(--blueOne);
-    }
-
-
-    .sectionTitle {
-        text-align: center;
-
-        margin: 1em 0 0.8em;
-
-        font-size: 1em;
-    }
-
-
-    /* =========================
-       PLAYER GRID
-       ========================= */
-
-    .playerGrid {
-
-        display: grid;
-
-        grid-template-columns:
-            repeat(
-                3,
-                minmax(0, 1fr)
-            );
-
-        gap: 9px;
 
     }
 
 
     /* =========================
-       PLAYER CARD
+       PLAYER LIST
        ========================= */
 
-    .playerCard {
-
-        display: flex;
-
-        align-items: flex-start;
-
-        padding: 9px;
-
-        background-color: var(--fff);
+    .playerList {
 
         border: 1px solid var(--ddd);
 
-        border-radius: 7px;
+        border-radius: 8px;
+
+        background-color: var(--fff);
 
         box-shadow:
-            0 1px 3px var(--ccc);
+            0 1px 4px var(--ccc);
 
-        min-width: 0;
+        /*
+         * This is the important part:
+         * the list itself scrolls instead
+         * of taking over the whole page.
+         */
+
+        max-height: 430px;
+
+        overflow-y: auto;
 
     }
 
 
+    .playerRow {
+
+        display: flex;
+
+        align-items: center;
+
+        padding: 7px 10px;
+
+        border-bottom: 1px solid var(--eee);
+
+        min-height: 45px;
+
+    }
+
+
+    .playerRow:last-child {
+
+        border-bottom: none;
+
+    }
+
+
+    .playerRow:hover {
+
+        background-color: var(--f7f7f7);
+
+    }
+
+
+    /* =========================
+       PLAYER PHOTO
+       ========================= */
+
     .playerPhoto {
 
-        width: 42px;
+        width: 38px;
 
-        height: 42px;
+        height: 38px;
 
         object-fit: contain;
 
@@ -714,10 +689,14 @@
 
         flex-shrink: 0;
 
-        margin-right: 8px;
+        margin-right: 9px;
 
     }
 
+
+    /* =========================
+       PLAYER INFO
+       ========================= */
 
     .playerInfo {
 
@@ -732,11 +711,9 @@
 
         font-weight: 700;
 
-        font-size: 0.86em;
+        font-size: 0.83em;
 
         line-height: 1.1;
-
-        overflow-wrap: break-word;
 
     }
 
@@ -745,20 +722,30 @@
 
         color: var(--g777);
 
-        font-size: 0.67em;
+        font-size: 0.65em;
 
         margin-top: 2px;
 
     }
 
 
+    /* =========================
+       CHAMPIONSHIP COUNT
+       ========================= */
+
     .championshipCount {
 
-        margin-top: 3px;
+        font-size: 0.72em;
 
         font-weight: 700;
 
-        font-size: 0.72em;
+        white-space: nowrap;
+
+        margin-left: 10px;
+
+        min-width: 72px;
+
+        text-align: right;
 
     }
 
@@ -769,56 +756,32 @@
 
     .history {
 
-        margin-top: 7px;
+        display: flex;
 
-        padding-top: 6px;
+        flex-wrap: wrap;
 
-        border-top: 1px solid var(--ddd);
+        gap: 4px;
 
-    }
-
-
-    .historyTitle {
-
-        font-size: 0.68em;
-
-        font-weight: 700;
-
-        margin-bottom: 4px;
+        margin-top: 4px;
 
     }
 
 
-    .historyItem {
+    .historyChip {
 
-        margin-bottom: 4px;
+        font-size: 0.59em;
 
-        font-size: 0.63em;
+        padding: 2px 5px;
 
-        line-height: 1.2em;
+        border-radius: 4px;
 
-    }
+        background-color: var(--f3f3f3);
 
-
-    .historyYear {
-
-        font-weight: 700;
-
-    }
-
-
-    .historyTeam {
+        border: 1px solid var(--ddd);
 
         color: var(--g555);
 
-    }
-
-
-    .historyManager {
-
-        color: var(--g999);
-
-        font-style: italic;
+        white-space: nowrap;
 
     }
 
@@ -851,9 +814,9 @@
 
     .noResults {
 
-        text-align: center;
+        padding: 3em 1em;
 
-        margin: 3em auto;
+        text-align: center;
 
         color: var(--g777);
 
@@ -863,60 +826,86 @@
 
 
     /* =========================
-       TABLET
-       ========================= */
-
-    @media (max-width: 800px) {
-
-        .playerGrid {
-
-            grid-template-columns:
-                repeat(
-                    2,
-                    minmax(0, 1fr)
-                );
-
-        }
-
-    }
-
-
-    /* =========================
        MOBILE
        ========================= */
 
-    @media (max-width: 520px) {
+    @media (max-width: 600px) {
 
         .playerRecords {
-            width: 92%;
-        }
 
-
-        .playerGrid {
-
-            grid-template-columns:
-                1fr;
+            width: 94%;
 
         }
 
 
-        .playerCard {
+        .playerList {
 
-            padding: 8px;
+            max-height: 400px;
+
+        }
+
+
+        .playerRow {
+
+            padding: 7px;
 
         }
 
 
         .playerPhoto {
 
-            width: 40px;
+            width: 34px;
 
-            height: 40px;
+            height: 34px;
+
+            margin-right: 7px;
+
+        }
+
+
+        .playerName {
+
+            font-size: 0.78em;
+
+        }
+
+
+        .playerDetails {
+
+            font-size: 0.6em;
+
+        }
+
+
+        .championshipCount {
+
+            font-size: 0.65em;
+
+            min-width: 62px;
+
+        }
+
+
+        .historyChip {
+
+            font-size: 0.55em;
 
         }
 
     }
 
+
+    @media (max-width: 400px) {
+
+        .championshipCount {
+
+            min-width: 55px;
+
+            font-size: 0.6em;
+
+        }
+
+    }
 
 </style>
 
@@ -927,11 +916,11 @@
     <div class="header">
 
         <h2>
-            👤 Player Records
+            🏆 Championship Players
         </h2>
 
         <p>
-            Players who have appeared on championship rosters
+            Every player who has appeared on a Big Bowl championship roster
         </p>
 
     </div>
@@ -965,35 +954,22 @@
                 class="search"
                 type="search"
                 bind:value={searchTerm}
-                placeholder="🔍 Search for a championship player..."
+                placeholder="🔍 Search player, team, or position..."
                 aria-label="Search championship players"
             />
 
         </div>
 
 
-        <h3 class="sectionTitle">
-
-            {#if searchTerm.trim()}
-
-                Search Results
-
-            {:else}
-
-                Top 10 Championship Players
-
-            {/if}
-
-        </h3>
-
+        <!-- SCROLLABLE ALPHABETICAL LIST -->
 
         {#if filteredPlayers.length}
 
-            <div class="playerGrid">
+            <div class="playerList">
 
                 {#each filteredPlayers as player}
 
-                    <div class="playerCard">
+                    <div class="playerRow">
 
 
                         <!-- PLAYER PHOTO -->
@@ -1013,10 +989,10 @@
                         />
 
 
+                        <!-- PLAYER INFO -->
+
                         <div class="playerInfo">
 
-
-                            <!-- NAME -->
 
                             <div class="playerName">
 
@@ -1027,13 +1003,17 @@
                             </div>
 
 
-                            <!-- POSITION + NFL TEAM -->
-
                             <div class="playerDetails">
 
-                                {getPlayerPosition(
+                                {#if getPlayerPosition(
                                     player.playerID
                                 )}
+
+                                    {getPlayerPosition(
+                                        player.playerID
+                                    )}
+
+                                {/if}
 
                                 {#if
                                     getPlayerPosition(
@@ -1055,78 +1035,29 @@
                             </div>
 
 
-                            <!-- CHAMPIONSHIPS -->
-
-                            <div class="championshipCount">
-
-                                {#if player.championships === 1}
-
-                                    🏆 1x Champion
-
-                                {:else}
-
-                                    🏆
-                                    {player.championships}x Champions
-
-                                {/if}
-
-                            </div>
-
-
-                            <!-- HISTORY -->
+                            <!-- CHAMPIONSHIP YEARS -->
 
                             <div class="history">
-
-                                <div class="historyTitle">
-
-                                    Championship History
-
-                                </div>
-
 
                                 {#each
                                     player.history
                                     as historyEntry
                                 }
 
-                                    <div
-                                        class="historyItem"
-                                    >
+                                    <div class="historyChip">
 
-                                        <div
-                                            class="historyYear"
-                                        >
+                                        {historyEntry.year}
+                                        —
+                                        BB
+                                        {getBigBowlNumber(
+                                            historyEntry.year
+                                        )}
 
-                                            {historyEntry.year}
-                                            —
-                                            The Big Bowl
-                                            {getBigBowlNumber(
-                                                historyEntry.year
-                                            )}
+                                        ·
 
-                                        </div>
-
-
-                                        <div
-                                            class="historyTeam"
-                                        >
-
-                                            {getHistoryTeamName(
-                                                historyEntry
-                                            )}
-
-                                        </div>
-
-
-                                        <div
-                                            class="historyManager"
-                                        >
-
-                                            {getHistoryManagerName(
-                                                historyEntry
-                                            )}
-
-                                        </div>
+                                        {getHistoryTeamName(
+                                            historyEntry
+                                        )}
 
                                     </div>
 
@@ -1134,7 +1065,20 @@
 
                             </div>
 
+
                         </div>
+
+
+                        <!-- CHAMPIONSHIP COUNT -->
+
+                        <div class="championshipCount">
+
+                            🏆
+
+                            {player.championships}x
+
+                        </div>
+
 
                     </div>
 
@@ -1145,9 +1089,13 @@
 
         {:else}
 
-            <div class="noResults">
+            <div class="playerList">
 
-                No championship players found.
+                <div class="noResults">
+
+                    No championship players found.
+
+                </div>
 
             </div>
 
