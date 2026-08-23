@@ -856,7 +856,7 @@
                                 }
 
                                     <div
-                                        class: mvpChip={isMVP(
+                                        class:mvpChip={isMVP(
                                             player.playerID,
                                             historyEntry.year
                                         )}
