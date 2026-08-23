@@ -1149,7 +1149,7 @@
 
 
     /* =========================
-       DERIVED TEAM LIST
+       TEAM PLAYOFF RECORD ORDER
        ========================= */
 
     let teamList = $derived(
@@ -1255,6 +1255,86 @@
                         );
                 }
             )
+    );
+
+
+    /* =========================
+       PLAYOFF HISTORY ORDER
+       ========================= */
+
+    let playoffHistoryList = $derived(
+        [...teamList].sort(
+            (a, b) => {
+
+                /*
+                 * 1. Most playoff appearances
+                 */
+
+                if (
+                    b.playoffAppearances !==
+                    a.playoffAppearances
+                ) {
+
+                    return (
+                        b.playoffAppearances -
+                        a.playoffAppearances
+                    );
+                }
+
+
+                /*
+                 * 2. Most recent playoff
+                 *    appearance
+                 */
+
+                const aLast =
+                    a.streaks?.lastPlayoff ||
+                    0;
+
+
+                const bLast =
+                    b.streaks?.lastPlayoff ||
+                    0;
+
+
+                if (
+                    bLast !==
+                    aLast
+                ) {
+
+                    return (
+                        bLast -
+                        aLast
+                    );
+                }
+
+
+                /*
+                 * 3. Longest current streak
+                 */
+
+                if (
+                    b.streaks.currentStreak !==
+                    a.streaks.currentStreak
+                ) {
+
+                    return (
+                        b.streaks.currentStreak -
+                        a.streaks.currentStreak
+                    );
+                }
+
+
+                /*
+                 * 4. Alphabetical
+                 */
+
+                return a.teamName
+                    .localeCompare(
+                        b.teamName
+                    );
+            }
+        )
     );
 
 
@@ -1892,7 +1972,7 @@
 
                     <tbody>
 
-                        {#each teamList as record}
+                        {#each playoffHistoryList as record}
 
                             <tr>
 
@@ -1947,6 +2027,11 @@
                 </table>
 
             </div>
+
+
+            <p class="note">
+                Sorted by playoff appearances, then most recent appearance.
+            </p>
 
         </div>
 
