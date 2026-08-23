@@ -5,6 +5,7 @@
     import AllTimeRecords from './AllTimeRecords.svelte';
     import PerSeasonRecords from './PerSeasonRecords.svelte';
     import ChampionshipPlayers from './ChampionshipPlayers.svelte';
+    import PlayoffRecords from './PlayoffRecords.svelte';
 
     let {leagueData, totals, stale, leagueTeamManagers} = $props();
 
