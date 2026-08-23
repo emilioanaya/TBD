@@ -545,15 +545,22 @@
 
         try {
 
-            const leagues =
-    await getHistoricalLeagues();
+            const currentSeason =
+    new Date().getFullYear();
+
+const historicalLeagues =
+    leagues.filter(
+        league =>
+            Number(league.season) <
+            currentSeason
+    );
 
 
 /*
  * Oldest → newest.
  */
 
-leagues.sort(
+historicalLeagues.sort(
     (a, b) =>
         Number(a.season) -
         Number(b.season)
@@ -636,7 +643,7 @@ leagues.sort(
 
             for (
     const league
-    of leagues
+    of historicalLeagues
 ) {
 
                 const year =
