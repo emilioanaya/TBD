@@ -114,6 +114,8 @@
         appearance: auto;
         -webkit-appearance: menulist;
         -moz-appearance: menulist;
+
+        color-scheme: light;
     }
 
 
