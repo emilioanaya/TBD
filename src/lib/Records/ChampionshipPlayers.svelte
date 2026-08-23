@@ -23,6 +23,56 @@
     let errorMessage = "";
 
     /* =========================
+       BIG BOWL MVPs
+       ========================= */
+
+    const bigBowlMVPs = {
+        2023: {
+            name: "CeeDee Lamb",
+            points: 40.20
+        },
+        2024: {
+            name: "Trey McBride",
+            points: 36.30
+        },
+        2025: {
+            name: "Derrick Henry",
+            points: 45.60
+        }
+    };
+
+
+    const isMVP = (playerID, year) => {
+
+        const mvp = bigBowlMVPs[Number(year)];
+
+        if (!mvp) {
+            return false;
+        }
+
+        return (
+            getPlayerName(playerID)
+                .toLowerCase()
+                === mvp.name.toLowerCase()
+        );
+
+    };
+
+
+    const getMVPCount = (player) => {
+
+        return player.history.filter(
+            historyEntry =>
+                isMVP(
+                    player.playerID,
+                    historyEntry.year
+                )
+        ).length;
+
+    };
+
+
+    /* =========================
        BIG BOWL NUMBER
        ========================= */
 
@@ -579,6 +629,22 @@
 
 
     /* =========================
+       MVP
+       ========================= */
+
+    .mvpBadge {
+        display: inline-block;
+        margin-left: 4px;
+        font-size: 0.85em;
+    }
+
+
+    .mvpChip {
+        font-weight: 700;
+    }
+
+
+    /* =========================
        CHAMPIONSHIP COUNT
        ========================= */
 
@@ -744,6 +810,17 @@
                                     player.playerID
                                 )}
 
+                                {#if getMVPCount(player) > 0}
+
+                                    <span
+                                        class="mvpBadge"
+                                        title="Big Bowl MVP"
+                                    >
+                                        ⭐
+                                    </span>
+
+                                {/if}
+
                             </div>
 
 
@@ -778,7 +855,13 @@
                                     as historyEntry
                                 }
 
-                                    <div class="historyChip">
+                                    <div
+                                        class: mvpChip={isMVP(
+                                            player.playerID,
+                                            historyEntry.year
+                                        )}
+                                        class="historyChip"
+                                    >
 
                                         {historyEntry.year}
                                         —
@@ -792,6 +875,15 @@
                                         {getHistoryTeamName(
                                             historyEntry
                                         )}
+
+                                        {#if isMVP(
+                                            player.playerID,
+                                            historyEntry.year
+                                        )}
+
+                                            ⭐ MVP
+
+                                        {/if}
 
                                     </div>
 
