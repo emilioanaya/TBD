@@ -1,548 +1,1047 @@
 <script>
+    import { leagueID } from '$lib/utils/leagueInfo';
 
-    export let playoffData;
     export let leagueTeamManagers;
 
+    let loading = true;
+    let errorMessage = '';
 
-    /*
-     * =========================
-     * TEAM NAME
-     * =========================
-     */
+    let teamRecords = {};
+    let seedRecords = {};
+    let completedYears = [];
 
-    const getTeamName = (managerID) => {
+    let lowestChampionshipSeed = null;
 
-        return (
-            leagueTeamManagers
-                ?.users
-                ?.[managerID]
-                ?.display_name
-            ||
-            `Manager ${managerID}`
-        );
 
+    /* =========================
+       HISTORICAL LEAGUES
+       ========================= */
+
+    const getHistoricalLeagues = async () => {
+
+        const leagues = [];
+
+        let currentLeagueID = leagueID;
+
+        while (
+            currentLeagueID &&
+            String(currentLeagueID) !== '0'
+        ) {
+
+            const response = await fetch(
+                `https://api.sleeper.app/v1/league/${currentLeagueID}`
+            );
+
+            if (!response.ok) {
+                break;
+            }
+
+            const league = await response.json();
+
+            leagues.push(league);
+
+            currentLeagueID = league.previous_league_id;
+        }
+
+        return leagues;
     };
 
 
-    /*
-     * =========================
-     * BUILD TEAM RECORDS
-     * =========================
-     */
+    /* =========================
+       SLEEPER BRACKET
+       ========================= */
 
-    $: teamList = (() => {
+    const getBracket = async (id) => {
 
-        if(
-            !playoffData?.leagueManagerRecords
-        ) {
+        const response = await fetch(
+            `https://api.sleeper.app/v1/league/${id}/winners_bracket`
+        );
 
+        if (!response.ok) {
             return [];
-
         }
 
+        return await response.json();
+    };
 
-        return Object.entries(
-            playoffData.leagueManagerRecords
-        )
-        .map(
-            ([managerID, record]) => ({
 
-                managerID,
+    /* =========================
+       SLEEPER ROSTERS
+       ========================= */
 
-                ...record
+    const getRosters = async (id) => {
 
-            })
-        )
-        .sort(
-            (a, b) => {
+        const response = await fetch(
+            `https://api.sleeper.app/v1/league/${id}/rosters`
+        );
 
-                if(
-                    b.playoffWins !==
-                    a.playoffWins
+        if (!response.ok) {
+            return [];
+        }
+
+        return await response.json();
+    };
+
+
+    /* =========================
+       HISTORICAL TEAM
+       ========================= */
+
+    const getHistoricalTeam = (year, rosterID) => {
+
+        const yearData =
+            leagueTeamManagers?.teamManagersMap?.[year] ??
+            leagueTeamManagers?.teamManagersMap?.[String(year)];
+
+        if (!yearData) {
+            return null;
+        }
+
+        return (
+            yearData[rosterID] ??
+            yearData[String(rosterID)] ??
+            null
+        );
+    };
+
+
+    /* =========================
+       TEAM NAME
+       ========================= */
+
+    const getHistoricalTeamName = (historicalTeam) => {
+
+        if (!historicalTeam) {
+            return null;
+        }
+
+        if (
+            historicalTeam.team &&
+            typeof historicalTeam.team === 'object' &&
+            historicalTeam.team.name
+        ) {
+            return historicalTeam.team.name;
+        }
+
+        if (
+            historicalTeam.team &&
+            typeof historicalTeam.team === 'string'
+        ) {
+            return historicalTeam.team;
+        }
+
+        if (historicalTeam.teamName) {
+            return historicalTeam.teamName;
+        }
+
+        return null;
+    };
+
+
+    /* =========================
+       MANAGER IDENTITY
+       =========================
+
+       Sleeper roster IDs change every season.
+
+       Manager IDs do not.
+
+       We therefore use the manager ID(s)
+       as the primary historical team key.
+    */
+
+    const getManagerIDs = (historicalTeam) => {
+
+        if (!historicalTeam?.managers) {
+            return [];
+        }
+
+        let managers = historicalTeam.managers;
+
+        if (!Array.isArray(managers)) {
+            managers = [managers];
+        }
+
+        return managers
+            .map(manager => {
+
+                if (
+                    manager &&
+                    typeof manager === 'object'
                 ) {
 
                     return (
-                        b.playoffWins -
-                        a.playoffWins
+                        manager.user_id ??
+                        manager.managerID ??
+                        manager.id ??
+                        manager.userId ??
+                        null
                     );
 
                 }
 
+                return manager;
+            })
+            .filter(
+                manager =>
+                    manager !== null &&
+                    manager !== undefined &&
+                    String(manager).length
+            )
+            .map(manager => String(manager))
+            .sort();
+    };
 
-                return (
-                    b.playoffAppearances -
-                    a.playoffAppearances
-                );
 
-            }
-        );
+    /* =========================
+       TEAM KEY
+       ========================= */
 
-    })();
+    const getTeamKey = (year, rosterID) => {
 
+        const historicalTeam =
+            getHistoricalTeam(
+                year,
+                rosterID
+            );
 
-    /*
-     * =========================
-     * BUILD PLAYOFF HISTORY
-     * =========================
-     */
+        const managerIDs =
+            getManagerIDs(historicalTeam);
 
-    $: historyList = (() => {
+        /*
+         * Primary identity:
+         * manager IDs.
+         */
 
-        if(
-            !playoffData?.leagueRosterRecords
-        ) {
-
-            return [];
-
+        if (managerIDs.length) {
+            return `manager-${managerIDs.join('-')}`;
         }
 
+        /*
+         * Fallback:
+         * team name.
+         */
 
-        const history = {};
+        const teamName =
+            getHistoricalTeamName(
+                historicalTeam
+            );
+
+        if (teamName) {
+
+            return `team-${teamName
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+            }`;
+        }
+
+        /*
+         * Last resort.
+         */
+
+        return `roster-${rosterID}`;
+    };
+
+
+    /* =========================
+       TEAM NAME
+       ========================= */
+
+    const getTeamName = (record) => {
+
+        if (
+            record?.teamName &&
+            !record.teamName.startsWith('Team ')
+        ) {
+            return record.teamName;
+        }
+
+        return 'Unknown Team';
+    };
+
+
+    /* =========================
+       PLAYOFF TEAMS
+       ========================= */
+
+    const getPlayoffRosters = (bracket) => {
+
+        const playoffRosters =
+            new Set();
+
+        for (const match of bracket) {
+
+            if (match.t1 !== undefined) {
+
+                playoffRosters.add(
+                    String(match.t1)
+                );
+            }
+
+            if (match.t2 !== undefined) {
+
+                playoffRosters.add(
+                    String(match.t2)
+                );
+            }
+        }
+
+        return playoffRosters;
+    };
+
+
+    /* =========================
+       PLAYOFF RECORD
+       ========================= */
+
+    const getPlayoffRecord = (
+        rosterID,
+        bracket
+    ) => {
+
+        let wins = 0;
+        let losses = 0;
+
+        for (const match of bracket) {
+
+            const team1 =
+                String(match.t1 ?? '');
+
+            const team2 =
+                String(match.t2 ?? '');
+
+            const winner =
+                String(match.w ?? '');
+
+            const loser =
+                String(match.l ?? '');
+
+            if (
+                team1 !== String(rosterID) &&
+                team2 !== String(rosterID)
+            ) {
+                continue;
+            }
+
+            if (
+                winner === String(rosterID)
+            ) {
+                wins++;
+            }
+
+            if (
+                loser === String(rosterID)
+            ) {
+                losses++;
+            }
+        }
+
+        return {
+            wins,
+            losses
+        };
+    };
+
+
+    /* =========================
+       CREATE / UPDATE TEAM
+       ========================= */
+
+    const addTeamSeason = ({
+        year,
+        rosterID,
+        seed,
+        madePlayoffs,
+        wins,
+        losses,
+        champion,
+        finals
+    }) => {
+
+        const historicalTeam =
+            getHistoricalTeam(
+                year,
+                rosterID
+            );
+
+        const teamKey =
+            getTeamKey(
+                year,
+                rosterID
+            );
+
+        const historicalTeamName =
+            getHistoricalTeamName(
+                historicalTeam
+            );
 
 
         /*
-         * The roster IDs in Sleeper stay tied
-         * to the team throughout the league's
-         * history, so combine all yearly records.
+         * Create the all-time team
+         * record once.
          */
-        for(
-            const rosterID
-            in playoffData.leagueRosterRecords
+
+        if (!teamRecords[teamKey]) {
+
+            teamRecords[teamKey] = {
+
+                teamKey,
+
+                teamName:
+                    historicalTeamName ||
+                    `Team ${rosterID}`,
+
+                seasons: [],
+
+                playoffAppearances: 0,
+
+                playoffWins: 0,
+
+                playoffLosses: 0,
+
+                championships: 0,
+
+                championshipAppearances: 0
+            };
+        }
+
+
+        const record =
+            teamRecords[teamKey];
+
+
+        /*
+         * Always prefer the real
+         * historical team name.
+         *
+         * Because seasons are processed
+         * oldest -> newest, a newer
+         * team name can replace an old
+         * one if necessary.
+         */
+
+        if (
+            historicalTeamName &&
+            (
+                !record.teamName ||
+                record.teamName.startsWith('Team ')
+            )
         ) {
 
-            const rosterRecord =
-                playoffData
-                    .leagueRosterRecords[
-                        rosterID
-                    ];
+            record.teamName =
+                historicalTeamName;
+        }
 
 
-            const seasons =
-                rosterRecord?.years || [];
+        /*
+         * Don't add the same season twice.
+         */
+
+        const alreadyAdded =
+            record.seasons.some(
+                season =>
+                    Number(season.year) ===
+                    Number(year)
+            );
+
+        if (alreadyAdded) {
+            return;
+        }
+
+
+        record.seasons.push({
+
+            year,
+
+            rosterID:
+                String(rosterID),
+
+            seed,
+
+            madePlayoffs
+
+        });
+
+
+        if (madePlayoffs) {
+            record.playoffAppearances++;
+        }
+
+
+        record.playoffWins += wins;
+
+        record.playoffLosses += losses;
+
+
+        if (champion) {
+            record.championships++;
+        }
+
+
+        if (finals) {
+            record.championshipAppearances++;
+        }
+    };
+
+
+    /* =========================
+       LOAD ALL RECORDS
+       ========================= */
+
+    const loadRecords = async () => {
+
+        loading = true;
+
+        errorMessage = '';
+
+        teamRecords = {};
+
+        seedRecords = {};
+
+        completedYears = [];
+
+        lowestChampionshipSeed = null;
+
+
+        try {
+
+            const leagues =
+                await getHistoricalLeagues();
 
 
             /*
-             * Each roster record contains the
-             * seasons in which that roster
-             * actually appeared in the playoffs.
-             *
-             * We also need the seasons in which
-             * it DID NOT appear, so build those
-             * from the complete season list below.
+             * Process oldest -> newest.
              */
-            history[rosterID] = {
 
-                rosterID,
-
-                seasons:
-                    [...seasons]
-
-            };
-
-        }
+            leagues.sort(
+                (a, b) =>
+                    Number(a.season) -
+                    Number(b.season)
+            );
 
 
-        /*
-         * Determine every season represented
-         * by the records.
-         */
-        const allYears =
-            new Set();
+            for (const league of leagues) {
+
+                const year =
+                    Number(league.season);
 
 
-        for(
-            const rosterID
-            in playoffData.leagueRosterRecords
-        ) {
-
-            for(
-                const season
-                of playoffData
-                    .leagueRosterRecords[
-                        rosterID
-                    ].years || []
-            ) {
-
-                if(season.year) {
-
-                    allYears.add(
-                        Number(season.year)
+                const bracket =
+                    await getBracket(
+                        league.league_id
                     );
 
+
+                /*
+                 * No bracket means there
+                 * isn't a completed playoff
+                 * record for that season.
+                 */
+
+                if (
+                    !bracket ||
+                    !bracket.length
+                ) {
+                    continue;
                 }
 
+
+                /*
+                 * Determine the final round.
+                 */
+
+                const rounds =
+                    bracket.map(
+                        match =>
+                            Number(match.r) || 0
+                    );
+
+                const finalRound =
+                    Math.max(...rounds);
+
+
+                /*
+                 * Find the championship game.
+                 */
+
+                const finalMatch =
+                    bracket.find(
+                        match =>
+                            Number(match.r) ===
+                                finalRound &&
+                            match.w !== undefined &&
+                            match.w !== null
+                    );
+
+
+                if (!finalMatch) {
+                    continue;
+                }
+
+
+                /*
+                 * This is a completed season.
+                 */
+
+                completedYears.push(year);
+
+
+                const championID =
+                    String(finalMatch.w);
+
+
+                /*
+                 * Championship participants.
+                 */
+
+                const finalists =
+                    new Set();
+
+
+                if (
+                    finalMatch.t1 !== undefined
+                ) {
+
+                    finalists.add(
+                        String(finalMatch.t1)
+                    );
+                }
+
+
+                if (
+                    finalMatch.t2 !== undefined
+                ) {
+
+                    finalists.add(
+                        String(finalMatch.t2)
+                    );
+                }
+
+
+                const rosters =
+                    await getRosters(
+                        league.league_id
+                    );
+
+
+                if (!rosters.length) {
+                    continue;
+                }
+
+
+                const playoffRosters =
+                    getPlayoffRosters(
+                        bracket
+                    );
+
+
+                /*
+                 * Process EVERY roster from
+                 * THIS historical season.
+                 */
+
+                for (const roster of rosters) {
+
+                    const rosterID =
+                        String(roster.roster_id);
+
+
+                    const madePlayoffs =
+                        playoffRosters.has(
+                            rosterID
+                        );
+
+
+                    /*
+                     * Sleeper's regular-season
+                     * finishing rank.
+                     */
+
+                    const seed =
+                        Number(
+                            roster.settings?.rank
+                        ) || null;
+
+
+                    let wins = 0;
+                    let losses = 0;
+
+
+                    if (madePlayoffs) {
+
+                        const playoffRecord =
+                            getPlayoffRecord(
+                                rosterID,
+                                bracket
+                            );
+
+                        wins =
+                            playoffRecord.wins;
+
+                        losses =
+                            playoffRecord.losses;
+                    }
+
+
+                    const champion =
+                        rosterID ===
+                        championID;
+
+
+                    const finals =
+                        finalists.has(
+                            rosterID
+                        );
+
+
+                    addTeamSeason({
+
+                        year,
+
+                        rosterID,
+
+                        seed,
+
+                        madePlayoffs,
+
+                        wins,
+
+                        losses,
+
+                        champion,
+
+                        finals
+                    });
+
+
+                    /* =========================
+                       SEED RECORDS
+                       ========================= */
+
+                    if (
+                        madePlayoffs &&
+                        seed
+                    ) {
+
+                        if (
+                            !seedRecords[seed]
+                        ) {
+
+                            seedRecords[seed] = {
+
+                                seed,
+
+                                playoffAppearances:
+                                    0,
+
+                                championshipAppearances:
+                                    0,
+
+                                championships:
+                                    0
+                            };
+                        }
+
+
+                        seedRecords[
+                            seed
+                        ].playoffAppearances++;
+
+
+                        if (finals) {
+
+                            seedRecords[
+                                seed
+                            ].championshipAppearances++;
+                        }
+
+
+                        if (champion) {
+
+                            seedRecords[
+                                seed
+                            ].championships++;
+
+
+                            /*
+                             * The larger the seed
+                             * number, the lower the
+                             * seed.
+                             *
+                             * Example:
+                             * #4 is a lower seed than #1.
+                             */
+
+                            if (
+                                lowestChampionshipSeed ===
+                                null ||
+                                seed >
+                                lowestChampionshipSeed
+                            ) {
+
+                                lowestChampionshipSeed =
+                                    seed;
+                            }
+                        }
+                    }
+                }
             }
 
-        }
 
+            /*
+             * Remove duplicate years.
+             */
 
-        const years =
-            Array.from(allYears)
-                .sort(
+            completedYears =
+                [
+                    ...new Set(
+                        completedYears
+                    )
+                ].sort(
                     (a, b) => a - b
                 );
 
 
-        /*
-         * Add missing seasons as non-playoff
-         * seasons.
-         */
-        for(
-            const rosterID
-            in history
-        ) {
+        } catch (error) {
 
-            const existingYears =
-                new Set(
-                    history[
-                        rosterID
-                    ].seasons.map(
-                        season =>
-                            Number(
-                                season.year
-                            )
-                    )
+            console.error(
+                'Playoff Records:',
+                error
+            );
+
+            errorMessage =
+                error?.message ||
+                'Unable to load playoff records.';
+
+        } finally {
+
+            loading = false;
+        }
+    };
+
+
+    /* =========================
+       STREAK / DROUGHT
+       ========================= */
+
+    const getStreakInfo = (record) => {
+
+        const seasons =
+            [...record.seasons]
+                .sort(
+                    (a, b) =>
+                        Number(a.year) -
+                        Number(b.year)
                 );
 
 
-            for(
-                const year
-                of years
+        let currentStreak = 0;
+
+        let currentDrought = 0;
+
+
+        /*
+         * Work backward from the most
+         * recent completed season.
+         */
+
+        for (
+            let i =
+                seasons.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            if (
+                seasons[i].madePlayoffs
             ) {
 
-                if(
-                    !existingYears.has(
-                        year
-                    )
+                /*
+                 * If we have already counted
+                 * a drought, stop.
+                 */
+
+                if (
+                    currentDrought > 0
                 ) {
-
-                    history[
-                        rosterID
-                    ].seasons.push({
-
-                        year,
-
-                        wins: 0,
-                        losses: 0,
-                        ties: 0,
-
-                        fpts: 0,
-                        fptsAgainst: 0,
-
-                        pOGames: 0,
-                        byes: 0,
-
-                        seed: null,
-
-                        champion: false,
-                        finals: false
-
-                    });
-
+                    break;
                 }
 
+                currentStreak++;
+
+            } else {
+
+                /*
+                 * If we already have a
+                 * current playoff streak,
+                 * stop.
+                 */
+
+                if (
+                    currentStreak > 0
+                ) {
+                    break;
+                }
+
+                currentDrought++;
             }
-
-
-            history[
-                rosterID
-            ].seasons.sort(
-                (a, b) =>
-                    Number(a.year) -
-                    Number(b.year)
-            );
-
         }
 
 
         /*
-         * Calculate playoff history.
+         * Last playoff appearance.
          */
-        return Object.values(history)
-            .map(record => {
 
-                const playoffSeasons =
-                    record.seasons.filter(
-                        season =>
-                            season.pOGames > 0
-                    );
-
-
-                const lastPlayoff =
-                    playoffSeasons.length
-                        ? playoffSeasons[
-                            playoffSeasons.length - 1
-                        ].year
-                        : null;
+        const lastPlayoff =
+            [...seasons]
+                .reverse()
+                .find(
+                    season =>
+                        season.madePlayoffs
+                );
 
 
-                /*
-                 * Current playoff streak.
-                 */
-                let currentStreak = 0;
+        return {
+
+            currentStreak,
+
+            currentDrought,
+
+            lastPlayoff:
+                lastPlayoff?.year ||
+                null
+        };
+    };
 
 
-                for(
-                    let i =
-                        record.seasons.length - 1;
-                    i >= 0;
-                    i--
-                ) {
+    /* =========================
+       REACTIVE LISTS
+       ========================= */
 
-                    if(
-                        record.seasons[i]
-                            .pOGames > 0
-                    ) {
+    $: teamList =
+        Object.values(teamRecords)
+            .map(record => ({
 
-                        currentStreak++;
+                ...record,
 
-                    }
-                    else {
+                streaks:
+                    getStreakInfo(record)
 
-                        break;
-
-                    }
-
-                }
-
-
-                /*
-                 * Current playoff drought.
-                 */
-                let currentDrought = 0;
-
-
-                for(
-                    let i =
-                        record.seasons.length - 1;
-                    i >= 0;
-                    i--
-                ) {
-
-                    if(
-                        record.seasons[i]
-                            .pOGames > 0
-                    ) {
-
-                        break;
-
-                    }
-
-
-                    currentDrought++;
-
-                }
-
-
-                return {
-
-                    ...record,
-
-                    playoffAppearances:
-                        playoffSeasons.length,
-
-                    lastPlayoff,
-
-                    currentStreak,
-
-                    currentDrought
-
-                };
-
-            })
+            }))
             .sort(
-                (a, b) =>
-                    b.playoffAppearances -
-                    a.playoffAppearances
+                (a, b) => {
+
+                    if (
+                        b.playoffAppearances !==
+                        a.playoffAppearances
+                    ) {
+
+                        return (
+                            b.playoffAppearances -
+                            a.playoffAppearances
+                        );
+                    }
+
+                    if (
+                        b.playoffWins !==
+                        a.playoffWins
+                    ) {
+
+                        return (
+                            b.playoffWins -
+                            a.playoffWins
+                        );
+                    }
+
+                    return a.teamName
+                        .localeCompare(
+                            b.teamName
+                        );
+                }
             );
 
-    })();
 
-
-    /*
-     * =========================
-     * SEEDING RECORDS
-     * =========================
-     */
-
-    $: seedList = (() => {
-
-        const records = {};
-
-
-        for(
-            const team
-            of historyList
-        ) {
-
-            for(
-                const season
-                of team.seasons
-            ) {
-
-                if(
-                    !season.pOGames ||
-                    !season.seed
-                ) {
-
-                    continue;
-
-                }
-
-
-                const seed =
-                    Number(
-                        season.seed
-                    );
-
-
-                if(
-                    !records[seed]
-                ) {
-
-                    records[seed] = {
-
-                        seed,
-
-                        playoffAppearances: 0,
-
-                        championshipAppearances: 0,
-
-                        championships: 0
-
-                    };
-
-                }
-
-
-                records[seed]
-                    .playoffAppearances++;
-
-
-                if(
-                    season.finals
-                ) {
-
-                    records[seed]
-                        .championshipAppearances++;
-
-                }
-
-
-                if(
-                    season.champion
-                ) {
-
-                    records[seed]
-                        .championships++;
-
-                }
-
-            }
-
-        }
-
-
-        return Object.values(records)
+    $: seedList =
+        Object.values(seedRecords)
             .sort(
                 (a, b) =>
                     a.seed -
                     b.seed
             );
 
-    })();
 
-
-    /*
-     * =========================
-     * LEADERS
-     * =========================
-     */
+    /* =========================
+       LEADERS
+       ========================= */
 
     const getLeaders = (
         records,
-        value
+        property
     ) => {
 
-        if(
-            !records?.length
+        if (
+            !records.length
         ) {
-
             return [];
-
         }
 
 
         const highest =
             Math.max(
                 ...records.map(
-                    value
+                    record =>
+                        record[property]
                 )
             );
 
 
         return records.filter(
             record =>
-                value(record) ===
+                record[property] ===
                 highest
         );
-
     };
 
 
     $: mostPlayoffWins =
         getLeaders(
             teamList,
-            record =>
-                record.wins
+            'playoffWins'
         );
 
 
     $: mostPlayoffAppearances =
         getLeaders(
             teamList,
-            record =>
-                record.playoffAppearances
-        );
-
-
-    $: droughtTeams =
-        historyList.filter(
-            record =>
-                record.currentDrought > 0
-        );
-
-
-    $: longestDrought =
-        getLeaders(
-            droughtTeams,
-            record =>
-                record.currentDrought
+            'playoffAppearances'
         );
 
 
     /*
-     * =========================
-     * LOWEST CHAMPIONSHIP SEED
-     * =========================
+     * Teams with an active drought.
      */
 
-    $: championshipSeeds =
-        seedList.filter(
+    $: teamsWithDrought =
+        teamList.filter(
             record =>
-                record.championships > 0
+                record.streaks
+                    .currentDrought > 0
         );
 
 
-    $: lowestChampionshipSeed =
-        championshipSeeds.length
-            ? Math.max(
-                ...championshipSeeds.map(
-                    record =>
-                        record.seed
-                )
-            )
-            : null;
+    $: longestDroughtTeams =
+        getLeaders(
+            teamsWithDrought,
+            'currentDrought'
+        );
+
+
+    /*
+     * Load.
+     */
+
+    loadRecords();
 
 </script>
 
@@ -553,6 +1052,14 @@
         width: 94%;
         max-width: 1100px;
         margin: 2em auto 5em;
+    }
+
+
+    .loading,
+    .error {
+        text-align: center;
+        margin: 6em auto;
+        color: var(--g555);
     }
 
 
@@ -631,7 +1138,7 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 550px;
+        min-width: 600px;
     }
 
 
@@ -694,6 +1201,9 @@
                 repeat(2, minmax(0, 1fr));
         }
 
+        .playoffRecords {
+            width: 95%;
+        }
     }
 
 
@@ -703,18 +1213,15 @@
             grid-template-columns: 1fr;
         }
 
-
         .card {
             padding: 11px;
         }
-
 
         th,
         td {
             padding: 7px 6px;
             font-size: 0.68em;
         }
-
     }
 
 </style>
@@ -722,11 +1229,19 @@
 
 <div class="playoffRecords">
 
-    {#if !playoffData}
+    {#if loading}
 
         <div class="loading">
             Loading playoff records...
         </div>
+
+
+    {:else if errorMessage}
+
+        <div class="error">
+            {errorMessage}
+        </div>
+
 
     {:else}
 
@@ -743,7 +1258,6 @@
 
             <div class="cards">
 
-
                 <!-- MOST PLAYOFF WINS -->
 
                 <div class="card">
@@ -758,11 +1272,9 @@
                         {#each mostPlayoffWins as leader}
 
                             <span class="leader">
-
                                 {getTeamName(
-                                    leader.managerID
+                                    leader
                                 )}
-
                             </span>
 
                         {/each}
@@ -772,7 +1284,7 @@
 
                     <div class="cardSub">
 
-                        {mostPlayoffWins[0]?.wins || 0}
+                        {mostPlayoffWins[0]?.playoffWins || 0}
                         wins
 
                         {#if mostPlayoffWins.length > 1}
@@ -798,11 +1310,9 @@
                         {#each mostPlayoffAppearances as leader}
 
                             <span class="leader">
-
                                 {getTeamName(
-                                    leader.managerID
+                                    leader
                                 )}
-
                             </span>
 
                         {/each}
@@ -824,53 +1334,49 @@
                 </div>
 
 
-                <!-- LONGEST DROUGHT -->
+                <!-- MOST CHAMPIONSHIPS -->
 
                 <div class="card">
 
                     <div class="cardLabel">
-                        Longest Playoff Drought
+                        Most Championships
                     </div>
 
 
                     <div class="cardValue">
 
-                        {#if longestDrought.length}
+                        {#each getLeaders(teamList, 'championships') as leader}
 
-                            {#each longestDrought as leader}
+                            <span class="leader">
+                                {getTeamName(
+                                    leader
+                                )}
+                            </span>
 
-                                <span class="leader">
-
-                                    {getTeamName(
-                                        leader.managerID
-                                    )}
-
-                                </span>
-
-                            {/each}
-
-                        {:else}
-
-                            —
-
-                        {/if}
+                        {/each}
 
                     </div>
 
 
                     <div class="cardSub">
 
-                        {longestDrought[0]?.currentDrought || 0}
-                        seasons
+                        {teamList.length
+                            ? Math.max(
+                                ...teamList.map(
+                                    record =>
+                                        record.championships
+                                )
+                            )
+                            : 0}
+                        championships
 
-                        {#if longestDrought.length > 1}
+                        {#if getLeaders(teamList, 'championships').length > 1}
                             · Tied
                         {/if}
 
                     </div>
 
                 </div>
-
 
             </div>
 
@@ -895,23 +1401,10 @@
                     <thead>
 
                         <tr>
-
-                            <th>
-                                Seed
-                            </th>
-
-                            <th>
-                                Playoff Appearances
-                            </th>
-
-                            <th>
-                                Championship Games
-                            </th>
-
-                            <th>
-                                Championships
-                            </th>
-
+                            <th>Seed</th>
+                            <th>Playoff Appearances</th>
+                            <th>Championship Games</th>
+                            <th>Championships</th>
                         </tr>
 
                     </thead>
@@ -985,35 +1478,13 @@
                     <thead>
 
                         <tr>
-
-                            <th>
-                                Team
-                            </th>
-
-                            <th>
-                                Playoffs
-                            </th>
-
-                            <th>
-                                W
-                            </th>
-
-                            <th>
-                                L
-                            </th>
-
-                            <th>
-                                Win %
-                            </th>
-
-                            <th>
-                                Championships
-                            </th>
-
-                            <th>
-                                Finals
-                            </th>
-
+                            <th>Team</th>
+                            <th>Playoffs</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>Win %</th>
+                            <th>Championships</th>
+                            <th>Finals</th>
                         </tr>
 
                     </thead>
@@ -1024,14 +1495,13 @@
                         {#each teamList as record}
 
                             {@const totalGames =
-                                record.wins +
-                                record.losses}
-
+                                record.playoffWins +
+                                record.playoffLosses}
 
                             {@const winPercentage =
                                 totalGames
                                     ? (
-                                        record.wins /
+                                        record.playoffWins /
                                         totalGames *
                                         100
                                     ).toFixed(1)
@@ -1041,41 +1511,33 @@
                             <tr>
 
                                 <td class="teamCell">
-
                                     {getTeamName(
-                                        record.managerID
+                                        record
                                     )}
-
                                 </td>
-
 
                                 <td>
                                     {record.playoffAppearances}
                                 </td>
 
-
                                 <td>
-                                    {record.wins}
+                                    {record.playoffWins}
                                 </td>
 
-
                                 <td>
-                                    {record.losses}
+                                    {record.playoffLosses}
                                 </td>
-
 
                                 <td>
                                     {winPercentage}%
                                 </td>
 
-
                                 <td>
-                                    {record.championships || 0}
+                                    {record.championships}
                                 </td>
 
-
                                 <td>
-                                    {record.finalsAppearances || 0}
+                                    {record.championshipAppearances}
                                 </td>
 
                             </tr>
@@ -1109,27 +1571,11 @@
                     <thead>
 
                         <tr>
-
-                            <th>
-                                Team
-                            </th>
-
-                            <th>
-                                Last Playoff App.
-                            </th>
-
-                            <th>
-                                Playoff Apps.
-                            </th>
-
-                            <th>
-                                Playoff Streak
-                            </th>
-
-                            <th>
-                                Playoff Drought
-                            </th>
-
+                            <th>Team</th>
+                            <th>Last Playoff App.</th>
+                            <th>Playoff Apps.</th>
+                            <th>Current Streak</th>
+                            <th>Playoff Drought</th>
                         </tr>
 
                     </thead>
@@ -1137,24 +1583,22 @@
 
                     <tbody>
 
-                        {#each historyList as record}
+                        {#each teamList as record}
 
                             <tr>
 
                                 <td class="teamCell">
-
                                     {getTeamName(
-                                        record.managerID
+                                        record
                                     )}
-
                                 </td>
 
 
                                 <td>
 
-                                    {#if record.lastPlayoff}
+                                    {#if record.streaks.lastPlayoff}
 
-                                        {record.lastPlayoff}
+                                        {record.streaks.lastPlayoff}
 
                                     {:else}
 
@@ -1173,17 +1617,17 @@
 
 
                                 <td>
-                                    {record.currentStreak}
+                                    {record.streaks.currentStreak}
                                 </td>
 
 
                                 <td
                                     class:activeDrought={
-                                        record.currentDrought > 0
+                                        record.streaks.currentDrought > 0
                                     }
                                 >
 
-                                    {record.currentDrought}
+                                    {record.streaks.currentDrought}
 
                                 </td>
 
