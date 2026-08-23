@@ -653,6 +653,17 @@
     color: var(--blueOne);
 }
 
+.mvpExplanation {
+    margin: 5px 0 0;
+    color: var(--g777);
+    font-size: 0.7em;
+    line-height: 1.3;
+}
+
+.mvpExplanation strong {
+    color: var(--blueOne);
+    font-weight: 800;
+}
 
     /* =========================
        CHAMPIONSHIP COUNT
@@ -746,9 +757,13 @@
             🏆 Championship Players
         </h2>
 
-        <p>
-            Every player who has appeared on a Big Bowl championship roster
+           <p>
+    Every player who has appeared on a Big Bowl championship roster
         </p>
+
+<p class="mvpExplanation">
+    Players marked with a blue <strong>MVP</strong> tag won Big Bowl MVP for that corresponding year.
+</p>
 
     </div>
 
