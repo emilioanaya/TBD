@@ -546,18 +546,44 @@
         try {
 
             const leagues =
-                await getHistoricalLeagues();
+    await getHistoricalLeagues();
 
 
-            /*
-             * Oldest → newest.
-             */
+/*
+ * The current season is still in progress,
+ * so it should NOT count toward playoff
+ * appearances, last playoff appearance,
+ * streaks, droughts, championships, etc.
+ *
+ * Use the most recent completed season
+ * from the records data.
+ */
 
-            leagues.sort(
-                (a, b) =>
-                    Number(a.season) -
-                    Number(b.season)
-            );
+const completedThroughYear =
+    Number(playoffData?.lastYear);
+
+
+/*
+ * Oldest → newest.
+ */
+
+leagues.sort(
+    (a, b) =>
+        Number(a.season) -
+        Number(b.season)
+);
+
+
+/*
+ * Only process completed seasons.
+ */
+
+const completedLeagues =
+    leagues.filter(
+        league =>
+            Number(league.season) <=
+            completedThroughYear
+    );
 
 
             const rosterData =
@@ -635,9 +661,9 @@
              */
 
             for (
-                const league
-                of leagues
-            ) {
+    const league
+    of completedLeagues
+) {
 
                 const year =
                     Number(
