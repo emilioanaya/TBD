@@ -1,5 +1,10 @@
 <script>
-    import { loadPlayers, getAwards, getLeagueRosters } from '$lib/utils/helper';
+    import {
+    loadPlayers,
+    getAwards,
+    getLeagueRosters,
+    leagueID
+} from '$lib/utils/helper';
     import {
         getAvatarFromTeamManagers,
         getTeamNameFromTeamManagers,
@@ -118,8 +123,7 @@
 
             try {
                 const response = await fetch(
-                    'https://api.sleeper.app/v1/league/' +
-                    '1312126061173043200'
+                    `https://api.sleeper.app/v1/league/${leagueID}`
                 );
 
                 if (response.ok) {
