@@ -386,15 +386,18 @@
             {leagueTeamManagers}
         />
 
-<!-- =========================
-     PLAYOFF RECORDS
-     ========================= -->
 
-{:else if recordCategory === "playoff"}
+    <!-- =========================
+         PLAYOFF RECORDS
+         ========================= -->
 
-    <PlayoffRecords
-        {leagueTeamManagers}
-    />
+    {:else if recordCategory === "playoff"}
+
+        <PlayoffRecords
+            playoffData={leagueData?.playoffData}
+            {leagueTeamManagers}
+        />
+
 
     <!-- =========================
          DRAFT RECORDS
