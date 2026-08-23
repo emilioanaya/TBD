@@ -27,51 +27,27 @@
 
     const refreshRecords = async () => {
         const newRecords = await getLeagueRecords(true);
-
         leagueData = newRecords;
     }
 
     let key = $state("regularSeasonData");
 
     $effect(() => {
-
         if(!leagueData || !leagueData[key]) return;
 
         const selectedLeagueData = leagueData[key];
 
-        leagueManagerRecords =
-            selectedLeagueData.leagueManagerRecords;
-
-        leagueRosterRecords =
-            selectedLeagueData.leagueRosterRecords;
-
-        leagueWeekHighs =
-            selectedLeagueData.leagueWeekHighs;
-
-        leagueWeekLows =
-            selectedLeagueData.leagueWeekLows;
-
-        allTimeClosestMatchups =
-            selectedLeagueData.allTimeClosestMatchups;
-
-        allTimeBiggestBlowouts =
-            selectedLeagueData.allTimeBiggestBlowouts;
-
-        mostSeasonLongPoints =
-            selectedLeagueData.mostSeasonLongPoints;
-
-        leastSeasonLongPoints =
-            selectedLeagueData.leastSeasonLongPoints;
-
-        seasonWeekRecords =
-            selectedLeagueData.seasonWeekRecords;
-
-        currentYear =
-            selectedLeagueData.currentYear;
-
-        lastYear =
-            selectedLeagueData.lastYear;
-
+        leagueManagerRecords = selectedLeagueData.leagueManagerRecords;
+        leagueRosterRecords = selectedLeagueData.leagueRosterRecords;
+        leagueWeekHighs = selectedLeagueData.leagueWeekHighs;
+        leagueWeekLows = selectedLeagueData.leagueWeekLows;
+        allTimeClosestMatchups = selectedLeagueData.allTimeClosestMatchups;
+        allTimeBiggestBlowouts = selectedLeagueData.allTimeBiggestBlowouts;
+        mostSeasonLongPoints = selectedLeagueData.mostSeasonLongPoints;
+        leastSeasonLongPoints = selectedLeagueData.leastSeasonLongPoints;
+        seasonWeekRecords = selectedLeagueData.seasonWeekRecords;
+        currentYear = selectedLeagueData.currentYear;
+        lastYear = selectedLeagueData.lastYear;
     });
 
     if(stale) {
@@ -92,7 +68,6 @@
      * draft  = future Draft Records
      */
     let recordCategory = $state("team");
-
 </script>
 
 
@@ -115,51 +90,36 @@
        ========================= */
 
     .categoryHolder {
-
         display: flex;
-
         justify-content: center;
-
         align-items: center;
-
         margin: 2em auto 1.5em;
-
         padding: 0 15px;
-
     }
 
 
     .categorySelect {
-
         width: 100%;
-
         max-width: 360px;
-
         padding: 12px 40px 12px 15px;
-
         font-size: 1em;
-
         font-weight: 600;
-
         border: 1px solid var(--bbb);
-
         border-radius: 8px;
-
         background-color: var(--fff);
-
         color: var(--g555);
-
         cursor: pointer;
 
+        /* Keep the native dropdown arrow visible */
+        appearance: auto;
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
     }
 
 
     .categorySelect:focus {
-
         outline: none;
-
         border-color: var(--blueOne);
-
     }
 
 
@@ -168,28 +128,20 @@
        ========================= */
 
     .buttonHolder {
-
         text-align: center;
-
         margin: 1em 0 0;
-
     }
 
 
     @media (max-width: 540px) {
 
         :global(.buttonHolder .selectionButtons) {
-
             font-size: 0.6em;
-
         }
 
         .categorySelect {
-
             max-width: 320px;
-
             font-size: 0.9em;
-
         }
 
     }
@@ -198,19 +150,13 @@
     @media (max-width: 415px) {
 
         :global(.buttonHolder .selectionButtons) {
-
             font-size: 0.5em;
-
             padding: 0 6px;
-
         }
 
         .categorySelect {
-
             max-width: 290px;
-
             font-size: 0.85em;
-
         }
 
     }
@@ -219,19 +165,13 @@
     @media (max-width: 315px) {
 
         :global(.buttonHolder .selectionButtons) {
-
             font-size: 0.45em;
-
             padding: 0 3px;
-
         }
 
         .categorySelect {
-
             max-width: 260px;
-
             font-size: 0.8em;
-
         }
 
     }
@@ -242,41 +182,26 @@
        ========================= */
 
     .comingSoon {
-
         width: 90%;
-
         max-width: 700px;
-
         margin: 5em auto;
-
         padding: 3em 1.5em;
-
         text-align: center;
-
         background-color: var(--fff);
-
         border: 1px solid var(--ddd);
-
         box-shadow: 0 0 8px 2px var(--ccc);
-
         border-radius: 8px;
-
     }
 
 
     .comingSoon h2 {
-
         margin: 0 0 0.5em;
-
     }
 
 
     .comingSoon p {
-
         margin: 0;
-
         color: var(--g555);
-
     }
 
 </style>
@@ -320,7 +245,6 @@
 
     {#if recordCategory === "team"}
 
-
         <div class="buttonHolder">
 
             <Group variant="outlined">
@@ -336,11 +260,9 @@
                             : "outlined"
                     }
                 >
-
                     <Label>
                         Regular Season
                     </Label>
-
                 </Button>
 
 
@@ -355,11 +277,9 @@
                             : "outlined"
                     }
                 >
-
                     <Label>
                         Playoffs
                     </Label>
-
                 </Button>
 
             </Group>
@@ -381,11 +301,9 @@
                             : "outlined"
                     }
                 >
-
                     <Label>
                         All-Time Records
                     </Label>
-
                 </Button>
 
 
@@ -400,11 +318,9 @@
                             : "outlined"
                     }
                 >
-
                     <Label>
                         Season Records
                     </Label>
-
                 </Button>
 
             </Group>
