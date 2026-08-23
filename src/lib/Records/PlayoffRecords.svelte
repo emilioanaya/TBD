@@ -202,16 +202,22 @@
 
             teamRecords[key] = {
 
-                ownerID: key,
+    ownerID: key,
 
-                teamName:
-                    getCurrentTeamName(
-                        key
-                    ) ||
-                    getCurrentManagerName(
-                        key
-                    ) ||
-                    'Unknown Team',
+    managerName:
+        getCurrentManagerName(
+            key
+        ) ||
+        'Unknown Manager',
+
+    teamName:
+        getCurrentTeamName(
+            key
+        ) ||
+        getCurrentManagerName(
+            key
+        ) ||
+        'Unknown Team',
 
                 seasons: [],
 
@@ -1181,6 +1187,11 @@
         font-weight: 700;
     }
 
+    .managerName {
+    font-weight: 400;
+    color: var(--g777);
+    }
+
     .highlight {
         color: var(--blueOne);
         font-weight: 700;
@@ -1432,8 +1443,11 @@
                             <tr>
 
                                 <td class="teamCell">
-                                    {record.teamName}
-                                </td>
+    {record.teamName}
+    <span class="managerName">
+        — {record.managerName}
+    </span>
+</td>
 
                                 <td>
                                     {record.playoffAppearances}
@@ -1525,8 +1539,11 @@
                             <tr>
 
                                 <td class="teamCell">
-                                    {record.teamName}
-                                </td>
+    {record.teamName}
+    <span class="managerName">
+        — {record.managerName}
+    </span>
+</td>
 
                                 <td>
 
