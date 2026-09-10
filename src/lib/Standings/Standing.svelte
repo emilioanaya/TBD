@@ -9,13 +9,10 @@
     export let isPlayoff = false;
 </script>
 
-
 <style>
-
     .clickable {
         cursor: pointer;
     }
-
 
     .teamAvatar {
         vertical-align: middle;
@@ -25,42 +22,36 @@
         border: 0.25px solid #777;
     }
 
-
     :global(.contrastRow) {
         background-color: var(--f8f8f8);
     }
 
-
     /*
      * PLAYOFF TEAMS
      *
-     * Subtle green highlight for the top six.
-     * Slightly stronger in dark mode so it remains
-     * visible against the dark table background.
+     * Soft green highlight for seeds 1-6.
      */
 
     :global(.playoffRow) {
-        background-color: rgba(76, 175, 80, 0.10) !important;
-        border-left: 3px solid rgba(76, 175, 80, 0.35);
+        background-color: rgba(76, 175, 80, 0.16) !important;
     }
 
+    /*
+     * Dark mode
+     *
+     * TBD switches its SMUI theme dynamically, so use the
+     * dark-theme class/stylesheet environment rather than
+     * relying only on prefers-color-scheme.
+     */
 
-    @media (prefers-color-scheme: dark) {
-
-        :global(.playoffRow) {
-            background-color: rgba(76, 175, 80, 0.18) !important;
-            border-left: 3px solid rgba(76, 175, 80, 0.55);
-        }
-
+    :global(body) .playoffRow {
+        background-color: rgba(76, 175, 80, 0.16) !important;
     }
-
 
     .team {
         text-align: center;
     }
-
 </style>
-
 
 <Row
     class={
@@ -69,9 +60,7 @@
             : 'contrastRow'
     }
 >
-
     <Cell>
-
         <div
             class="clickable team"
             onclick={() =>
@@ -80,7 +69,6 @@
                     rosterID: standing.rosterID
                 })}
         >
-
             <img
                 alt="team avatar"
                 class="teamAvatar clickable"
@@ -90,20 +78,12 @@
             <div>
                 {team.name}
             </div>
-
         </div>
-
     </Cell>
 
-
     {#each columnOrder as column}
-
         <Cell class="center">
-
             {standing[column.field]}
-
         </Cell>
-
     {/each}
-
 </Row>
