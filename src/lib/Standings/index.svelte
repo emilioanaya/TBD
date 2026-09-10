@@ -1,24 +1,17 @@
 <script>
-    import { leagueName } from '$lib/utils/helper';
     import { getTeamFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
-    import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
+    import DataTable, {
+        Head,
+        Body,
+        Row,
+        Cell
+    } from '@smui/data-table';
     import LinearProgress from '@smui/linear-progress';
-    import { onMount } from 'svelte';
     import Standing from './Standing.svelte';
 
-    export let standingsData, leagueTeamManagersData;
+    export let standingsData;
+    export let leagueTeamManagersData;
 
-
-    /*
-     * ============================================================
-     * STANDINGS SORT ORDER
-     * ============================================================
-     *
-     * Least important to most important.
-     *
-     * TBD does not use divisions, so there are no
-     * divisional tiebreakers here.
-     */
 
     const sortOrder = [
         "fptsAgainst",
@@ -27,15 +20,6 @@
         "wins"
     ];
 
-
-    /*
-     * ============================================================
-     * TABLE COLUMNS
-     * ============================================================
-     *
-     * Div W / Div T / Div L have been removed because
-     * TBD does not have divisions.
-     */
 
     const columnOrder = [
         { name: "W", field: "wins" },
@@ -47,120 +31,122 @@
     ];
 
 
-    /*
-     * ============================================================
-     * STATE
-     * ============================================================
-     */
-
     let loading = true;
     let preseason = false;
 
-    let standings;
-    let year;
-    let leagueTeamManagers;
+    let standings = [];
+    let year = null;
+    let leagueTeamManagers = null;
 
 
-    /*
-     * ============================================================
-     * LOAD STANDINGS
-     * ============================================================
-     */
+    async function loadStandings() {
 
-    onMount(async () => {
+        loading = true;
+        preseason = false;
 
-        const asyncStandingsData =
-            await standingsData;
+        try {
 
+            const asyncStandingsData =
+                await standingsData;
 
-        /*
-         * No standings yet.
-         */
-
-        if (!asyncStandingsData) {
-
-            loading = false;
-            preseason = true;
-
-            return;
-
-        }
+            leagueTeamManagers =
+                await leagueTeamManagersData;
 
 
-        /*
-         * Get standings information and season.
-         */
+            if (!asyncStandingsData) {
 
-        const {
-            standingsInfo,
-            yearData
-        } = asyncStandingsData;
+                standings = [];
+                year = null;
+                loading = false;
+                preseason = true;
 
-
-        leagueTeamManagers =
-            await leagueTeamManagersData;
-
-
-        year =
-            yearData;
-
-
-        /*
-         * Convert standings object into an array.
-         */
-
-        let finalStandings =
-            Object.keys(standingsInfo)
-                .map(
-                    key =>
-                        standingsInfo[key]
-                );
-
-
-        /*
-         * Apply TBD tiebreakers.
-         */
-
-        for (const sortType of sortOrder) {
-
-            if (
-                !finalStandings[0] ||
-                (
-                    !finalStandings[0][sortType] &&
-                    finalStandings[0][sortType] != 0
-                )
-            ) {
-
-                continue;
+                return;
 
             }
 
 
-            finalStandings =
-                [...finalStandings].sort(
-                    (a, b) =>
-                        b[sortType] -
-                        a[sortType]
-                );
+            const {
+                standingsInfo,
+                yearData
+            } = asyncStandingsData;
+
+
+            year = yearData;
+
+
+            if (
+                !standingsInfo ||
+                Object.keys(standingsInfo).length === 0
+            ) {
+
+                standings = [];
+                loading = false;
+                preseason = true;
+
+                return;
+
+            }
+
+
+            let finalStandings =
+                Object.keys(standingsInfo)
+                    .map(
+                        key =>
+                            standingsInfo[key]
+                    );
+
+
+            for (const sortType of sortOrder) {
+
+                if (
+                    !finalStandings[0] ||
+                    (
+                        !finalStandings[0][sortType] &&
+                        finalStandings[0][sortType] != 0
+                    )
+                ) {
+
+                    continue;
+
+                }
+
+
+                finalStandings =
+                    [...finalStandings].sort(
+                        (a, b) =>
+                            b[sortType] -
+                            a[sortType]
+                    );
+
+            }
+
+
+            standings =
+                finalStandings;
+
+            loading = false;
+
+        } catch (error) {
+
+            console.error(
+                'Error loading standings:',
+                error
+            );
+
+            standings = [];
+            loading = false;
+            preseason = true;
 
         }
 
-
-        standings =
-            finalStandings;
+    }
 
 
-        loading = false;
-
-    });
-
-
-    let innerWidth;
+    $: if (standingsData && leagueTeamManagersData) {
+        loadStandings();
+    }
 
 </script>
-
-
-<svelte:window bind:innerWidth={innerWidth} />
 
 
 <style>
@@ -184,27 +170,12 @@
     }
 
 
-    h1 {
-        font-size: 2.2em;
-        line-height: 1.3em;
-        margin: 1.5em 0 2em;
-    }
-
-
     .standingsTable {
         max-width: 100%;
         overflow-x: scroll;
         margin: 0.5em 0 5em;
     }
 
-
-    /*
-     * ============================================================
-     * PLAYOFF CUTOFF
-     * ============================================================
-     *
-     * A thin line is displayed between seed 6 and seed 7.
-     */
 
     .playoffCutoffRow {
         height: 1px;
@@ -224,15 +195,7 @@
         background-color: var(--ccc);
     }
 
-
 </style>
-
-
-<h1>
-    {year ?? ''}
-    {leagueName}
-    Standings
-</h1>
 
 
 {#if loading}
@@ -297,19 +260,9 @@
 
                 {#each standings as standing, index}
 
-                    {/*
-                     * ====================================================
-                     * PLAYOFF CUTOFF
-                     *
-                     * Insert a very thin line between seed 6 and seed 7.
-                     * ====================================================
-                     */}
-
                     {#if index === 6}
 
-                        <Row
-                            class="playoffCutoffRow"
-                        >
+                        <Row class="playoffCutoffRow">
 
                             <Cell
                                 colspan={columnOrder.length + 1}
