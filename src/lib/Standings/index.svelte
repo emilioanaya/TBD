@@ -1,4 +1,5 @@
 <script>
+    import { leagueName } from '$lib/utils/helper';
     import { getTeamFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
     import DataTable, {
         Head,
@@ -7,11 +8,23 @@
         Cell
     } from '@smui/data-table';
     import LinearProgress from '@smui/linear-progress';
+    import { onMount } from 'svelte';
     import Standing from './Standing.svelte';
 
     export let standingsData;
     export let leagueTeamManagersData;
 
+
+    /*
+     * ============================================================
+     * STANDINGS SORT ORDER
+     * ============================================================
+     *
+     * Least important to most important.
+     *
+     * TBD does not use divisions, so the divisional
+     * tiebreakers have been removed.
+     */
 
     const sortOrder = [
         "fptsAgainst",
@@ -20,6 +33,14 @@
         "wins"
     ];
 
+
+    /*
+     * ============================================================
+     * TABLE COLUMNS
+     * ============================================================
+     *
+     * Div W / Div T / Div L have been removed.
+     */
 
     const columnOrder = [
         { name: "W", field: "wins" },
@@ -31,6 +52,12 @@
     ];
 
 
+    /*
+     * ============================================================
+     * STATE
+     * ============================================================
+     */
+
     let loading = true;
     let preseason = false;
 
@@ -39,114 +66,98 @@
     let leagueTeamManagers = null;
 
 
-    async function loadStandings() {
+    /*
+     * ============================================================
+     * LOAD STANDINGS
+     * ============================================================
+     */
 
-        loading = true;
-        preseason = false;
+    onMount(async () => {
 
-        try {
-
-            const asyncStandingsData =
-                await standingsData;
-
-            leagueTeamManagers =
-                await leagueTeamManagersData;
+        const asyncStandingsData =
+            await standingsData;
 
 
-            if (!asyncStandingsData) {
+        if (!asyncStandingsData) {
 
-                standings = [];
-                year = null;
-                loading = false;
-                preseason = true;
-
-                return;
-
-            }
-
-
-            const {
-                standingsInfo,
-                yearData
-            } = asyncStandingsData;
-
-
-            year = yearData;
-
-
-            if (
-                !standingsInfo ||
-                Object.keys(standingsInfo).length === 0
-            ) {
-
-                standings = [];
-                loading = false;
-                preseason = true;
-
-                return;
-
-            }
-
-
-            let finalStandings =
-                Object.keys(standingsInfo)
-                    .map(
-                        key =>
-                            standingsInfo[key]
-                    );
-
-
-            for (const sortType of sortOrder) {
-
-                if (
-                    !finalStandings[0] ||
-                    (
-                        !finalStandings[0][sortType] &&
-                        finalStandings[0][sortType] != 0
-                    )
-                ) {
-
-                    continue;
-
-                }
-
-
-                finalStandings =
-                    [...finalStandings].sort(
-                        (a, b) =>
-                            b[sortType] -
-                            a[sortType]
-                    );
-
-            }
-
-
-            standings =
-                finalStandings;
-
-            loading = false;
-
-        } catch (error) {
-
-            console.error(
-                'Error loading standings:',
-                error
-            );
-
-            standings = [];
             loading = false;
             preseason = true;
 
+            return;
+
         }
 
-    }
+
+        const {
+            standingsInfo,
+            yearData
+        } = asyncStandingsData;
 
 
-    $: if (standingsData && leagueTeamManagersData) {
-        loadStandings();
-    }
+        leagueTeamManagers =
+            await leagueTeamManagersData;
+
+
+        year =
+            yearData;
+
+
+        /*
+         * Convert standings object into an array.
+         */
+
+        let finalStandings =
+            Object.keys(standingsInfo)
+                .map(
+                    (key) =>
+                        standingsInfo[key]
+                );
+
+
+        /*
+         * Apply TBD standings tiebreakers.
+         */
+
+        for (const sortType of sortOrder) {
+
+            if (
+                !finalStandings[0] ||
+                (
+                    !finalStandings[0][sortType] &&
+                    finalStandings[0][sortType] != 0
+                )
+            ) {
+
+                continue;
+
+            }
+
+
+            finalStandings =
+                [...finalStandings].sort(
+                    (a, b) =>
+                        b[sortType] -
+                        a[sortType]
+                );
+
+        }
+
+
+        standings =
+            finalStandings;
+
+
+        loading = false;
+
+    });
+
+
+    let innerWidth;
 
 </script>
+
+
+<svelte:window bind:innerWidth={innerWidth} />
 
 
 <style>
@@ -170,32 +181,27 @@
     }
 
 
+    h1 {
+        font-size: 2.2em;
+        line-height: 1.3em;
+        margin: 1.5em 0 2em;
+    }
+
+
     .standingsTable {
         max-width: 100%;
         overflow-x: scroll;
         margin: 0.5em 0 5em;
     }
 
-
-    .playoffCutoffRow {
-        height: 1px;
-    }
-
-
-    .playoffCutoffCell {
-        padding: 0 !important;
-        height: 1px;
-        border: 0 !important;
-    }
-
-
-    .playoffCutoff {
-        width: 100%;
-        height: 1px;
-        background-color: var(--ccc);
-    }
-
 </style>
+
+
+<h1>
+    {year ?? ''}
+    {leagueName}
+    Standings
+</h1>
 
 
 {#if loading}
@@ -260,31 +266,11 @@
 
                 {#each standings as standing, index}
 
-                    {#if index === 6}
-
-                        <Row class="playoffCutoffRow">
-
-                            <Cell
-                                colspan={columnOrder.length + 1}
-                                class="playoffCutoffCell"
-                            >
-
-                                <div
-                                    class="playoffCutoff"
-                                    aria-label="Playoff cutoff"
-                                ></div>
-
-                            </Cell>
-
-                        </Row>
-
-                    {/if}
-
-
                     <Standing
                         {columnOrder}
                         {standing}
                         {leagueTeamManagers}
+                        isPlayoff={index < 6}
                         team={
                             getTeamFromTeamManagers(
                                 leagueTeamManagers,
