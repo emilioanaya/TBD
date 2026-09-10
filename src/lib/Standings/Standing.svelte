@@ -32,18 +32,26 @@
 
 
     /*
-     * ============================================================
      * PLAYOFF TEAMS
-     * ============================================================
      *
-     * Very subtle green highlight for the top six.
-     *
-     * Using transparency keeps the green visible in both
-     * light and dark mode without becoming too strong.
+     * Subtle green highlight for the top six.
+     * Slightly stronger in dark mode so it remains
+     * visible against the dark table background.
      */
 
     :global(.playoffRow) {
         background-color: rgba(76, 175, 80, 0.10) !important;
+        border-left: 3px solid rgba(76, 175, 80, 0.35);
+    }
+
+
+    @media (prefers-color-scheme: dark) {
+
+        :global(.playoffRow) {
+            background-color: rgba(76, 175, 80, 0.18) !important;
+            border-left: 3px solid rgba(76, 175, 80, 0.55);
+        }
+
     }
 
 
