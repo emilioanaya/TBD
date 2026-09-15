@@ -13,6 +13,7 @@
 		getRosterIDFromManagerID,
 		getTeamNameFromTeamManagers
 	} from '$lib/utils/helperFunctions/universalFunctions';
+	import { getLeagueRecords, leagueName } from '$lib/utils/helper';
 
 	export let manager, managers, rostersData, leagueTeamManagers, rosterPositions, transactionsData, awards, records;
 
@@ -108,6 +109,210 @@
 	});
 
 
+	/* =========================
+	   ALL-TIME + SEASON RECORDS
+	   ========================= */
+
+	let currentRecords = records;
+
+
+	/*
+	 * Automatically get this manager's
+	 * all-time regular-season record.
+	 *
+	 * This comes from the historical Sleeper
+	 * record data instead of leagueInfo.js.
+	 */
+
+	$: managerRecord =
+		currentRecords?.regularSeasonData?.leagueManagerRecords?.[
+			viewManager?.managerID
+		];
+
+
+	/*
+	 * Automatically build this manager's
+	 * season-by-season records.
+	 */
+
+	$: seasonRecords = getManagerSeasonRecords(
+		viewManager?.managerID,
+		currentRecords,
+		leagueTeamManagers
+	);
+
+
+	function getManagerSeasonRecords(managerID, recordsData, teamManagers) {
+
+		if (
+			!managerID ||
+			!recordsData?.regularSeasonData ||
+			!teamManagers?.teamManagersMap
+		) {
+			return [];
+		}
+
+
+		const rosterRecords =
+			recordsData.regularSeasonData.leagueRosterRecords || {};
+
+
+		const seasons = [];
+
+
+		for (const rosterID in rosterRecords) {
+
+			const years =
+				rosterRecords[rosterID]?.years || [];
+
+
+			for (const season of years) {
+
+				const yearManagers =
+					teamManagers.teamManagersMap[season.year];
+
+
+				const rosterManagers =
+					yearManagers?.[rosterID]?.managers || [];
+
+
+				if (
+					!rosterManagers
+						.map(String)
+						.includes(String(managerID))
+				) {
+					continue;
+				}
+
+
+				seasons.push({
+
+					...season,
+
+					league: leagueName,
+
+					team:
+						yearManagers?.[rosterID]?.team?.name ||
+						'TBD'
+
+				});
+
+			}
+
+		}
+
+
+		return seasons.sort(
+			(a, b) => b.year - a.year
+		);
+
+	}
+
+
+	/*
+	 * Calculate the manager's finish for a
+	 * particular season using the same
+	 * tiebreaker order as TBD standings.
+	 */
+
+	function getSeasonFinish(season) {
+
+		if (
+			!season?.year ||
+			!currentRecords?.regularSeasonData
+		) {
+			return null;
+		}
+
+
+		const allRosters = [];
+
+
+		const rosterRecords =
+			currentRecords
+				.regularSeasonData
+				.leagueRosterRecords || {};
+
+
+		for (const rosterID in rosterRecords) {
+
+			const record =
+				rosterRecords[rosterID]?.years?.find(
+					y =>
+						Number(y.year) ===
+						Number(season.year)
+				);
+
+
+			if (record) {
+				allRosters.push(record);
+			}
+
+		}
+
+
+		/*
+		 * TBD standings tiebreakers:
+		 *
+		 * 1. Wins
+		 * 2. Ties
+		 * 3. FPTS
+		 * 4. FPTS Against
+		 */
+
+		allRosters.sort((a, b) => {
+
+			if (b.wins !== a.wins) {
+				return b.wins - a.wins;
+			}
+
+			if (b.ties !== a.ties) {
+				return b.ties - a.ties;
+			}
+
+			if (b.fpts !== a.fpts) {
+				return b.fpts - a.fpts;
+			}
+
+			return b.fptsAgainst - a.fptsAgainst;
+
+		});
+
+
+		const index =
+			allRosters.findIndex(
+				r =>
+					String(r.rosterID) ===
+						String(season.rosterID) &&
+					Number(r.year) ===
+						Number(season.year)
+			);
+
+
+		return index > -1
+			? index + 1
+			: null;
+
+	}
+
+
+	/*
+	 * If the cached record data is stale,
+	 * automatically refresh it from Sleeper.
+	 */
+
+	$: if (records?.stale) {
+
+		getLeagueRecords(true)
+			.then((newRecords) => {
+
+				currentRecords = newRecords;
+
+			});
+
+	}
+
+
 	const changeManager = (
 		newManager,
 		noscroll = false
@@ -123,7 +328,9 @@
 			`/manager?manager=${newManager}`,
 			{ noscroll }
 		);
+
 	};
+
 </script>
 
 
@@ -278,6 +485,77 @@
 	}
 
 
+	/* =========================
+	   ALL-TIME RECORD
+	   ========================= */
+
+	.allTimeRecord {
+		display: flex;
+
+		justify-content: center;
+
+		align-items: center;
+
+		gap: 0.5em;
+
+		margin: 2em 0 1em;
+
+		font-size: 1.1em;
+	}
+
+
+	.recordLabel {
+		color: #888;
+
+		font-style: italic;
+	}
+
+
+	/* =========================
+	   SEASON HISTORY
+	   ========================= */
+
+	.seasonHistory {
+		width: 100%;
+
+		margin: 1em 0 3em;
+	}
+
+
+	.seasonHeader,
+	.seasonRow {
+		display: grid;
+
+		grid-template-columns:
+			1fr
+			1.5fr
+			1fr
+			1fr;
+
+		gap: 0.75em;
+
+		align-items: center;
+
+		padding: 0.75em 0.5em;
+
+		text-align: center;
+	}
+
+
+	.seasonHeader {
+		font-weight: 600;
+
+		border-bottom:
+			1px solid #aaa;
+	}
+
+
+	.seasonRow {
+		border-bottom:
+			1px solid #ddd;
+	}
+
+
 	.loading {
 		display: block;
 
@@ -351,46 +629,63 @@
 	@media (max-width: 435px) {
 
 		:global(.selectionButtons span) {
+
 			line-height: 1.2em;
 
 			font-size: 0.8em;
+
 		}
+
 	}
 
 
 	@media (max-width: 450px) {
 
 		.basicInfo {
+
 			height: 20px;
+
 		}
 
 
 		.basicInfo span {
+
 			font-size: 0.75em;
+
 		}
 
 
 		.infoTeam {
+
 			height: 30px;
+
 		}
+
 	}
 
 
 	@media (max-width: 370px) {
 
 		.basicInfo {
+
 			height: 18px;
+
 		}
 
 
 		.basicInfo span {
+
 			font-size: 0.6em;
+
 		}
 
 
 		.infoTeam {
+
 			height: 24px;
+
 		}
+
 	}
 
 </style>
@@ -416,11 +711,13 @@
 				{coOwners ? 'Co-' : ''}Manager of
 
 				<i>
+
 					{getTeamNameFromTeamManagers(
 						leagueTeamManagers,
 						rosterID,
 						year
 					)}
+
 				</i>
 
 			</div>
@@ -474,7 +771,6 @@
 					</span>
 
 				{/if}
-
 
 			{:else if viewManager.fantasyStart}
 
@@ -647,37 +943,104 @@
 		<!-- BIO -->
 
 		<p class="bio">
+
 			{@html viewManager.bio}
+
 		</p>
 
 
-		<!-- TEAM HISTORY -->
+		<!-- =========================
+		     ALL-TIME RECORD
+		     ========================= -->
 
-		{#if viewManager.philosophy}
+		{#if managerRecord}
+
+			<div class="allTimeRecord">
+
+				<span class="recordLabel">
+					All-Time Record
+				</span>
+
+				<strong>
+
+					{managerRecord.wins}-{managerRecord.losses}-{managerRecord.ties}
+
+				</strong>
+
+			</div>
+
+		{/if}
+
+
+		<!-- =========================
+		     SEASON-BY-SEASON RECORD
+		     ========================= -->
+
+		{#if seasonRecords.length}
 
 			<h3>
-				Team History
+				Season-by-Season Record
 			</h3>
 
-			<p class="philosophy">
-				{@html viewManager.philosophy}
-			</p>
 
-			<p class="philosophy23">
-				{@html viewManager.philosophy23}
-			</p>
+			<div class="seasonHistory">
 
-			<p class="philosophy24">
-				{@html viewManager.philosophy24}
-			</p>
+				<div class="seasonHeader">
 
-			<p class="philosophy25">
-				{@html viewManager.philosophy25}
-			</p>
+					<span>Season</span>
 
-			<p class="philosophy26">
-				{@html viewManager.philosophy26}
-			</p>
+					<span>League</span>
+
+					<span>Record</span>
+
+					<span>Finish</span>
+
+				</div>
+
+
+				{#each seasonRecords as season}
+
+					<div class="seasonRow">
+
+						<span>
+							{season.year}
+						</span>
+
+						<span>
+							{season.league}
+						</span>
+
+						<span>
+							{season.wins}-{season.losses}-{season.ties}
+						</span>
+
+						<span>
+
+							{#if getSeasonFinish(season)}
+
+								{getSeasonFinish(season)}
+
+								{getSeasonFinish(season) === 1
+									? 'st'
+									: getSeasonFinish(season) === 2
+										? 'nd'
+										: getSeasonFinish(season) === 3
+											? 'rd'
+											: 'th'}
+
+							{:else}
+
+								—
+
+							{/if}
+
+						</span>
+
+					</div>
+
+				{/each}
+
+			</div>
 
 		{/if}
 
