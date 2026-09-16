@@ -86,68 +86,25 @@
 	};
 
 
-	/* =========================
+		/* =========================
 	   AUTOMATIC ALL-TIME RECORD
 	   ========================= */
 
 	let currentRecords = records;
 
 	/*
-	 * The league record data contains the completed
-	 * historical record separately from the current
-	 * season. Add the current season's record here
-	 * so All-Time Record includes 2026 as games are played.
+	 * getLeagueRecords already includes the
+	 * completed games from the current season
+	 * in the all-time manager record.
+	 *
+	 * Do not add the current season again here,
+	 * or Week 1 will be counted twice.
 	 */
 
-	$: historicalManagerRecord =
+	$: managerRecord =
 		currentRecords?.regularSeasonData?.leagueManagerRecords?.[
 			viewManager?.managerID
 		];
-
-	$: currentSeasonRecord = (() => {
-		if (
-			!currentRecords?.regularSeasonData ||
-			!rosterID
-		) {
-			return null;
-		}
-
-		const rosterRecords =
-			currentRecords.regularSeasonData.leagueRosterRecords || {};
-
-		const rosterRecord =
-			rosterRecords[String(rosterID)];
-
-		if (!rosterRecord?.years) {
-			return null;
-		}
-
-		const currentYear =
-			Number(currentRecords.regularSeasonData.currentYear);
-
-		return (
-			rosterRecord.years.find(
-				season =>
-					Number(season.year) === currentYear
-			) || null
-		);
-	})();
-
-	$: managerRecord = historicalManagerRecord
-		? {
-				wins:
-					Number(historicalManagerRecord.wins || 0) +
-					Number(currentSeasonRecord?.wins || 0),
-
-				losses:
-					Number(historicalManagerRecord.losses || 0) +
-					Number(currentSeasonRecord?.losses || 0),
-
-				ties:
-					Number(historicalManagerRecord.ties || 0) +
-					Number(currentSeasonRecord?.ties || 0)
-			}
-		: null;
 
 
 	let refreshingRecords = false;
