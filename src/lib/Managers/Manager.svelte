@@ -13,7 +13,6 @@
 	import ManagerAwards from './ManagerAwards.svelte';
 	import { onMount } from 'svelte';
 	import {
-		getDatesActive,
 		getRosterIDFromManagerID,
 		getTeamNameFromTeamManagers
 	} from '$lib/utils/helperFunctions/universalFunctions';
@@ -23,11 +22,6 @@
 	$: viewManager = managers[manager];
 
 	let transactions = transactionsData.transactions;
-
-	$: datesActive = getDatesActive(
-		leagueTeamManagers,
-		viewManager.managerID
-	);
 
 	const startersAndReserve = rostersData.startersAndReserve;
 
@@ -481,61 +475,7 @@
 			</span>
 
 
-			<!-- LEAGUE HISTORY -->
-
-			{#if viewManager.managerID && datesActive.start}
-
-				<span class="seperator">|</span>
-
-				{#if datesActive.end}
-
-					<span class="infoChild">
-
-						In the league from
-						'{datesActive.start
-							.toString()
-							.substr(2)}
-
-						to
-						'{datesActive.end
-							.toString()
-							.substr(2)}
-
-					</span>
-
-				{:else}
-
-					<span class="infoChild">
-
-						In the league since
-						'{datesActive.start
-							.toString()
-							.substr(2)}
-
-					</span>
-
-				{/if}
-
-
-			{:else if viewManager.fantasyStart}
-
-				<span class="seperator">|</span>
-
-				<span class="infoChild">
-
-					Playing ff since
-					'{viewManager.fantasyStart
-						.toString()
-						.substr(2)}
-
-				</span>
-
-			{/if}
-
-
-			<!-- =========================
-			     BIG BOWL CHAMPIONSHIPS
-			     ========================= -->
+			<!-- BIG BOWL CHAMPIONSHIPS -->
 
 			<span class="seperator">|</span>
 
@@ -546,9 +486,7 @@
 			</span>
 
 
-			<!-- =========================
-			     FAVORITE NFL TEAM
-			     ========================= -->
+			<!-- FAVORITE NFL TEAM -->
 
 			{#if viewManager.favoriteTeam}
 
