@@ -18,14 +18,7 @@
 		getTeamNameFromTeamManagers
 	} from '$lib/utils/helperFunctions/universalFunctions';
 
-	export let manager,
-		managers,
-		rostersData,
-		leagueTeamManagers,
-		rosterPositions,
-		transactionsData,
-		awards,
-		records;
+	export let manager, managers, rostersData, leagueTeamManagers, rosterPositions, transactionsData, awards, records;
 
 	let transactions = transactionsData.transactions;
 
@@ -36,8 +29,7 @@
 		viewManager.managerID
 	);
 
-	const startersAndReserve =
-		rostersData.startersAndReserve;
+	const startersAndReserve = rostersData.startersAndReserve;
 
 	let rosters = rostersData.rosters;
 
@@ -59,15 +51,11 @@
 
 	$: coOwners =
 		year && rosterID
-			? leagueTeamManagers.teamManagersMap[year][
-					rosterID
-				].managers.length > 1
+			? leagueTeamManagers.teamManagersMap[year][rosterID].managers.length > 1
 			: roster.co_owners;
 
 	$: commissioner = viewManager.managerID
-		? leagueTeamManagers.users[
-				viewManager.managerID
-			].is_owner
+		? leagueTeamManagers.users[viewManager.managerID].is_owner
 		: false;
 
 
@@ -97,47 +85,11 @@
 	};
 
 
-	onMount(async () => {
-
-		if (transactionsData.stale) {
-			refreshTransactions();
-		}
-
-		const playerData =
-			await loadPlayers(null);
-
-		playersInfo = playerData;
-
-		players = playerData.players;
-
-		loading = false;
-
-
-		if (playerData.stale) {
-
-			const newPlayerData =
-				await loadPlayers(null, true);
-
-			playersInfo = newPlayerData;
-
-			players = newPlayerData.players;
-		}
-
-	});
-
-
 	/* =========================
-	   ALL-TIME RECORD
+	   AUTOMATIC ALL-TIME RECORD
 	   ========================= */
 
 	let currentRecords = records;
-
-
-	/*
-	 * The league records system already calculates
-	 * the manager's complete record across every
-	 * TBD season.
-	 */
 
 	$: managerRecord =
 		currentRecords?.leagueManagerRecords?.[
@@ -145,255 +97,10 @@
 		];
 
 
-	/* =========================
-	   SEASON-BY-SEASON RECORD
-	   ========================= */
-
-	$: seasonRecords =
-		getManagerSeasonRecords(
-			viewManager?.managerID,
-			currentRecords,
-			leagueTeamManagers
-		);
-
-
-	function getManagerSeasonRecords(
-		managerID,
-		recordsData,
-		teamManagers
-	) {
-
-		if (
-			!managerID ||
-			!recordsData?.leagueRosterRecords ||
-			!teamManagers?.teamManagersMap
-		) {
-			return [];
-		}
-
-
-		const rosterRecords =
-			recordsData.leagueRosterRecords;
-
-
-		const seasons = [];
-
-
-		/*
-		 * Each roster can have a different manager
-		 * in different seasons, so we go through
-		 * every historical roster and determine
-		 * whether this manager was on that roster
-		 * during that particular season.
-		 */
-
-		for (const rosterID in rosterRecords) {
-
-			const years =
-				rosterRecords[rosterID]?.years || [];
-
-
-			for (const season of years) {
-
-				const seasonYear =
-					Number(season.year);
-
-
-				const yearManagers =
-					teamManagers.teamManagersMap[
-						seasonYear
-					];
-
-
-				const rosterData =
-					yearManagers?.[rosterID];
-
-
-				const managersForSeason =
-					rosterData?.managers || [];
-
-
-				if (
-					!managersForSeason
-						.map(String)
-						.includes(String(managerID))
-				) {
-					continue;
-				}
-
-
-				seasons.push({
-					...season,
-					rosterID: String(rosterID),
-					year: seasonYear
-				});
-
-			}
-
-		}
-
-
-		/*
-		 * Most recent season first.
-		 */
-
-		return seasons.sort(
-			(a, b) => b.year - a.year
-		);
-
-	}
-
-
-	/* =========================
-	   SEASON FINISH
-	   ========================= */
-
-	function getSeasonFinish(season) {
-
-		if (
-			!season?.year ||
-			!currentRecords?.leagueRosterRecords
-		) {
-			return null;
-		}
-
-
-		const allRosters = [];
-
-
-		const rosterRecords =
-			currentRecords.leagueRosterRecords;
-
-
-		/*
-		 * Collect every roster's record
-		 * for this particular season.
-		 */
-
-		for (const rosterID in rosterRecords) {
-
-			const record =
-				rosterRecords[
-					rosterID
-				]?.years?.find(
-					y =>
-						Number(y.year) ===
-						Number(season.year)
-				);
-
-
-			if (record) {
-
-				allRosters.push({
-					...record,
-					rosterID: String(rosterID)
-				});
-
-			}
-
-		}
-
-
-		/*
-		 * TBD standings tiebreaker order:
-		 *
-		 * 1. Wins
-		 * 2. Ties
-		 * 3. FPTS
-		 * 4. FPTS Against
-		 */
-
-		allRosters.sort((a, b) => {
-
-			if (
-				Number(b.wins) !==
-				Number(a.wins)
-			) {
-				return (
-					Number(b.wins) -
-					Number(a.wins)
-				);
-			}
-
-
-			if (
-				Number(b.ties) !==
-				Number(a.ties)
-			) {
-				return (
-					Number(b.ties) -
-					Number(a.ties)
-				);
-			}
-
-
-			if (
-				Number(b.fpts) !==
-				Number(a.fpts)
-			) {
-				return (
-					Number(b.fpts) -
-					Number(a.fpts)
-				);
-			}
-
-
-			return (
-				Number(b.fptsAgainst) -
-				Number(a.fptsAgainst)
-			);
-
-		});
-
-
-		const index =
-			allRosters.findIndex(
-				r =>
-					String(r.rosterID) ===
-						String(season.rosterID)
-			);
-
-
-		return index > -1
-			? index + 1
-			: null;
-
-	}
-
-
-	function getFinishSuffix(place) {
-
-		if (place === 1) return 'st';
-
-		if (place === 2) return 'nd';
-
-		if (place === 3) return 'rd';
-
-		return 'th';
-
-	}
-
-
-	/* =========================
-	   REFRESH RECORD DATA
-	   ========================= */
-
-	/*
-	 * If the records returned by the page are
-	 * marked stale, request fresh records.
-	 */
-
-	$: if (records?.stale) {
-
-		refreshRecords();
-
-	}
-
-
 	let refreshingRecords = false;
 
 
-	async function refreshRecords() {
+	async function refreshManagerRecords() {
 
 		if (refreshingRecords) return;
 
@@ -424,9 +131,44 @@
 	}
 
 
-	/* =========================
-	   MANAGER NAVIGATION
-	   ========================= */
+	onMount(async () => {
+
+		if (transactionsData.stale) {
+			refreshTransactions();
+		}
+
+
+		const playerData = await loadPlayers(null);
+
+		playersInfo = playerData;
+
+		players = playerData.players;
+
+		loading = false;
+
+
+		if (playerData.stale) {
+
+			const newPlayerData =
+				await loadPlayers(null, true);
+
+			playersInfo = newPlayerData;
+
+			players = newPlayerData.players;
+		}
+
+
+		/*
+		 * Refresh the historical record data when
+		 * the cached records are marked stale.
+		 */
+
+		if (records?.stale) {
+			refreshManagerRecords();
+		}
+
+	});
+
 
 	const changeManager = (
 		newManager,
@@ -435,7 +177,6 @@
 
 		if (!newManager) {
 			goto('/managers');
-			return;
 		}
 
 		manager = newManager;
@@ -444,9 +185,7 @@
 			`/manager?manager=${newManager}`,
 			{ noscroll }
 		);
-
 	};
-
 </script>
 
 
@@ -567,7 +306,7 @@
 
 
 	/* =========================
-	   ALL-TIME RECORD
+	   AUTOMATIC ALL-TIME RECORD
 	   ========================= */
 
 	.allTimeRecord {
@@ -579,7 +318,7 @@
 
 		gap: 0.5em;
 
-		margin: 2em 0 1em;
+		margin: 2em 0;
 
 		font-size: 1.1em;
 	}
@@ -592,47 +331,38 @@
 	}
 
 
-	/* =========================
-	   SEASON HISTORY
-	   ========================= */
+	.philosophy {
+		margin: 2em 1.5em 2em;
 
-	.seasonHistory {
-		width: 100%;
-
-		margin: 1em 0 3em;
+		text-indent: 4em;
 	}
 
 
-	.seasonHeader,
-	.seasonRow {
-		display: grid;
+	.philosophy23 {
+		margin: 2em 1.5em 2em;
 
-		grid-template-columns:
-			1fr
-			1fr
-			1fr;
-
-		gap: 0.75em;
-
-		align-items: center;
-
-		padding: 0.75em 0.5em;
-
-		text-align: center;
+		text-indent: 4em;
 	}
 
 
-	.seasonHeader {
-		font-weight: 600;
+	.philosophy24 {
+		margin: 2em 1.5em 2em;
 
-		border-bottom:
-			1px solid #aaa;
+		text-indent: 4em;
 	}
 
 
-	.seasonRow {
-		border-bottom:
-			1px solid #ddd;
+	.philosophy25 {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
+	}
+
+
+	.philosophy26 {
+		margin: 2em 1.5em 2em;
+
+		text-indent: 4em;
 	}
 
 
@@ -719,35 +449,48 @@
 	@media (max-width: 450px) {
 
 		.basicInfo {
+
 			height: 20px;
+
 		}
 
 
 		.basicInfo span {
+
 			font-size: 0.75em;
+
 		}
 
 
 		.infoTeam {
+
 			height: 30px;
+
 		}
+
 	}
 
 
 	@media (max-width: 370px) {
 
 		.basicInfo {
+
 			height: 18px;
+
 		}
 
 
 		.basicInfo span {
+
 			font-size: 0.6em;
+
 		}
 
 
 		.infoTeam {
+
 			height: 24px;
+
 		}
 
 	}
@@ -775,13 +518,11 @@
 				{coOwners ? 'Co-' : ''}Manager of
 
 				<i>
-
 					{getTeamNameFromTeamManagers(
 						leagueTeamManagers,
 						rosterID,
 						year
 					)}
-
 				</i>
 
 			</div>
@@ -836,6 +577,7 @@
 
 				{/if}
 
+
 			{:else if viewManager.fantasyStart}
 
 				<span class="seperator">|</span>
@@ -852,7 +594,9 @@
 			{/if}
 
 
-			<!-- BIG BOWL CHAMPIONSHIPS -->
+			<!-- =========================
+			     BIG BOWL CHAMPIONSHIPS
+			     ========================= -->
 
 			<span class="seperator">|</span>
 
@@ -863,7 +607,9 @@
 			</span>
 
 
-			<!-- FAVORITE NFL TEAM -->
+			<!-- =========================
+			     FAVORITE NFL TEAM
+			     ========================= -->
 
 			{#if viewManager.favoriteTeam}
 
@@ -1010,7 +756,7 @@
 
 
 		<!-- =========================
-		     ALL-TIME RECORD
+		     AUTOMATIC ALL-TIME RECORD
 		     ========================= -->
 
 		{#if managerRecord}
@@ -1036,76 +782,33 @@
 		{/if}
 
 
-		<!-- =========================
-		     SEASON-BY-SEASON RECORD
-		     ========================= -->
+		<!-- TEAM HISTORY -->
 
-		{#if seasonRecords.length}
+		{#if viewManager.philosophy}
 
 			<h3>
-				Season-by-Season Record
+				Team History
 			</h3>
 
+			<p class="philosophy">
+				{@html viewManager.philosophy}
+			</p>
 
-			<div class="seasonHistory">
+			<p class="philosophy23">
+				{@html viewManager.philosophy23}
+			</p>
 
-				<div class="seasonHeader">
+			<p class="philosophy24">
+				{@html viewManager.philosophy24}
+			</p>
 
-					<span>
-						Season
-					</span>
+			<p class="philosophy25">
+				{@html viewManager.philosophy25}
+			</p>
 
-					<span>
-						Record
-					</span>
-
-					<span>
-						Finish
-					</span>
-
-				</div>
-
-
-				{#each seasonRecords as season}
-
-					<div class="seasonRow">
-
-						<span>
-							{season.year}
-						</span>
-
-						<span>
-
-							{season.wins}
-							-
-							{season.losses}
-							-
-							{season.ties}
-
-						</span>
-
-						<span>
-
-							{#if getSeasonFinish(season)}
-
-								{getSeasonFinish(season)}
-								{getFinishSuffix(
-									getSeasonFinish(season)
-								)}
-
-							{:else}
-
-								—
-
-							{/if}
-
-						</span>
-
-					</div>
-
-				{/each}
-
-			</div>
+			<p class="philosophy26">
+				{@html viewManager.philosophy26}
+			</p>
 
 		{/if}
 
