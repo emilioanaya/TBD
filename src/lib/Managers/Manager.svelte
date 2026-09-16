@@ -54,6 +54,13 @@
 
 
 	/* =========================
+	   MANUAL SEASON HISTORY
+	   ========================= */
+
+	$: seasonRecords = viewManager?.seasonRecords || [];
+
+
+	/* =========================
 	   BIG BOWL CHAMPIONSHIPS
 	   ========================= */
 
@@ -260,7 +267,9 @@
 	}
 
 
-	/* Big Bowl championship count */
+	/* =========================
+	   CHAMPIONSHIP COUNT
+	   ========================= */
 
 	.championshipInfo {
 		font-style: normal !important;
@@ -269,6 +278,10 @@
 	}
 
 
+	/* =========================
+	   BIO
+	   ========================= */
+
 	.bio {
 		margin: 2em 1.5em 2em;
 		text-indent: 4em;
@@ -276,7 +289,7 @@
 
 
 	/* =========================
-	   AUTOMATIC ALL-TIME RECORD
+	   ALL-TIME RECORD
 	   ========================= */
 
 	.allTimeRecord {
@@ -284,7 +297,7 @@
 		justify-content: center;
 		align-items: center;
 		gap: 0.5em;
-		margin: 2em 0;
+		margin: 2em 0 2.5em;
 		font-size: 1.1em;
 	}
 
@@ -294,6 +307,64 @@
 		font-style: italic;
 	}
 
+
+	/* =========================
+	   SEASON HISTORY
+	   ========================= */
+
+	.seasonHistory {
+		width: 92%;
+		max-width: 650px;
+		margin: 2em auto 3em;
+	}
+
+
+	.seasonHistoryTitle {
+		margin-bottom: 1em;
+	}
+
+
+	.seasonTable {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: center;
+	}
+
+
+	.seasonTable th {
+		padding: 0.7em 0.5em;
+		font-weight: 600;
+		border-bottom: 1px solid rgba(128, 128, 128, 0.4);
+	}
+
+
+	.seasonTable td {
+		padding: 0.75em 0.5em;
+		border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+	}
+
+
+	.seasonTable tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+
+	/* Champion season gets subtle green highlight */
+
+	.seasonTable .championRow {
+		background-color: rgba(76, 175, 80, 0.22);
+		font-weight: 500;
+	}
+
+
+	.championBadge {
+		white-space: nowrap;
+	}
+
+
+	/* =========================
+	   TEAM HISTORY
+	   ========================= */
 
 	.philosophy {
 		margin: 2em 1.5em 2em;
@@ -370,7 +441,9 @@
 	}
 
 
-	/* media queries */
+	/* =========================
+	   MEDIA QUERIES
+	   ========================= */
 
 	@media (max-width: 505px) {
 
@@ -407,6 +480,18 @@
 			height: 30px;
 		}
 
+
+		.seasonHistory {
+			width: 96%;
+		}
+
+
+		.seasonTable th,
+		.seasonTable td {
+			padding: 0.6em 0.25em;
+			font-size: 0.9em;
+		}
+
 	}
 
 
@@ -424,6 +509,12 @@
 
 		.infoTeam {
 			height: 24px;
+		}
+
+
+		.seasonTable th,
+		.seasonTable td {
+			font-size: 0.8em;
 		}
 
 	}
@@ -475,7 +566,7 @@
 			</span>
 
 
-			<!-- BIG BOWL CHAMPIONSHIPS -->
+			<!-- CHAMPIONSHIPS -->
 
 			<span class="seperator">|</span>
 
@@ -633,7 +724,7 @@
 
 
 		<!-- =========================
-		     AUTOMATIC ALL-TIME RECORD
+		     ALL-TIME RECORD
 		     ========================= -->
 
 		{#if managerRecord}
@@ -659,7 +750,94 @@
 		{/if}
 
 
-		<!-- TEAM HISTORY -->
+		<!-- =========================
+		     SEASON HISTORY
+		     ========================= -->
+
+		{#if seasonRecords.length > 0}
+
+			<div class="seasonHistory">
+
+				<h3 class="seasonHistoryTitle">
+					Season History
+				</h3>
+
+
+				<table class="seasonTable">
+
+					<thead>
+
+						<tr>
+
+							<th>
+								Season
+							</th>
+
+							<th>
+								Record
+							</th>
+
+							<th>
+								Finish
+							</th>
+
+						</tr>
+
+					</thead>
+
+
+					<tbody>
+
+						{#each seasonRecords as season}
+
+							<tr
+								class:championRow={
+									season.champion === true
+								}
+							>
+
+								<td>
+									{season.year}
+								</td>
+
+
+								<td>
+									{season.record}
+								</td>
+
+
+								<td>
+
+									{#if season.champion}
+
+										<span class="championBadge">
+											🏆 {season.finish}
+										</span>
+
+									{:else}
+
+										{season.finish}
+
+									{/if}
+
+								</td>
+
+							</tr>
+
+						{/each}
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		{/if}
+
+
+		<!-- =========================
+		     TEAM HISTORY
+		     ========================= -->
 
 		{#if viewManager.philosophy}
 
