@@ -92,10 +92,62 @@
 
 	let currentRecords = records;
 
-	$: managerRecord =
-		currentRecords?.leagueManagerRecords?.[
+	/*
+	 * The league record data contains the completed
+	 * historical record separately from the current
+	 * season. Add the current season's record here
+	 * so All-Time Record includes 2026 as games are played.
+	 */
+
+	$: historicalManagerRecord =
+		currentRecords?.regularSeasonData?.leagueManagerRecords?.[
 			viewManager?.managerID
 		];
+
+	$: currentSeasonRecord = (() => {
+		if (
+			!currentRecords?.regularSeasonData ||
+			!rosterID
+		) {
+			return null;
+		}
+
+		const rosterRecords =
+			currentRecords.regularSeasonData.leagueRosterRecords || {};
+
+		const rosterRecord =
+			rosterRecords[String(rosterID)];
+
+		if (!rosterRecord?.years) {
+			return null;
+		}
+
+		const currentYear =
+			Number(currentRecords.regularSeasonData.currentYear);
+
+		return (
+			rosterRecord.years.find(
+				season =>
+					Number(season.year) === currentYear
+			) || null
+		);
+	})();
+
+	$: managerRecord = historicalManagerRecord
+		? {
+				wins:
+					Number(historicalManagerRecord.wins || 0) +
+					Number(currentSeasonRecord?.wins || 0),
+
+				losses:
+					Number(historicalManagerRecord.losses || 0) +
+					Number(currentSeasonRecord?.losses || 0),
+
+				ties:
+					Number(historicalManagerRecord.ties || 0) +
+					Number(currentSeasonRecord?.ties || 0)
+			}
+		: null;
 
 
 	let refreshingRecords = false;
@@ -300,15 +352,15 @@
 	.allTimeRecord {
 		display: flex;
 
+		flex-direction: column;
+
 		justify-content: center;
 
 		align-items: center;
 
-		gap: 0.5em;
+		margin: 3em 0 2em;
 
-		margin: 2em 0;
-
-		font-size: 1.1em;
+		text-align: center;
 	}
 
 
@@ -316,6 +368,15 @@
 		color: #888;
 
 		font-style: italic;
+
+		font-size: 1.1em;
+
+		margin-bottom: 0.25em;
+	}
+
+
+	.allTimeRecord strong {
+		font-size: 1.35em;
 	}
 
 
@@ -328,7 +389,7 @@
 
 		max-width: 650px;
 
-		margin: 3em auto;
+		margin: 2em auto 3em;
 	}
 
 
@@ -388,13 +449,6 @@
 		background-color: rgba(205, 127, 50, 0.22);
 
 		font-weight: 600;
-	}
-
-
-	.philosophy {
-		margin: 2em 1.5em 2em;
-
-		text-indent: 4em;
 	}
 
 
@@ -809,86 +863,32 @@
 		{/if}
 
 
-		<!-- TEAM HISTORY -->
+		<!-- FAVORITE PLAYER -->
 
-		{#if viewManager.philosophy}
+		{#if !loading}
 
-			<h3>
-				Team History
-			</h3>
-
-
-			<p class="philosophy">
-				{@html viewManager.philosophy}
-			</p>
+			<ManagerFantasyInfo
+				{viewManager}
+				{players}
+				{changeManager}
+			/>
 
 		{/if}
 
-	</div>
 
+		<!-- MANAGER AWARDS -->
 
-	<!-- FAVORITE PLAYER -->
-
-	{#if !loading}
-
-		<ManagerFantasyInfo
-			{viewManager}
-			{players}
-			{changeManager}
-		/>
-
-	{/if}
-
-
-	<!-- MANAGER AWARDS -->
-
-	<ManagerAwards
-		{leagueTeamManagers}
-		tookOver={viewManager.tookOver}
-		{awards}
-		{records}
-		{rosterID}
-		managerID={viewManager.managerID}
-	/>
-
-
-	<!-- ROSTER -->
-
-	{#if loading}
-
-		<div class="loading">
-
-			<p>
-				Retrieving players...
-			</p>
-
-			<LinearProgress indeterminate />
-
-		</div>
-
-	{:else}
-
-		<Roster
-			division="1"
-			expanded={false}
-			{rosterPositions}
-			{roster}
+		<ManagerAwards
 			{leagueTeamManagers}
-			{players}
-			{startersAndReserve}
+			tookOver={viewManager.tookOver}
+			{awards}
+			{records}
+			{rosterID}
+			managerID={viewManager.managerID}
 		/>
 
-	{/if}
 
-
-	<!-- TEAM TRANSACTIONS -->
-
-	<h3>
-		Team Transactions
-	</h3>
-
-
-	<div class="managerConstrained">
+		<!-- ROSTER -->
 
 		{#if loading}
 
@@ -904,116 +904,154 @@
 
 		{:else}
 
-			<TransactionsPage
-				{playersInfo}
-				transactions={teamTransactions}
+			<Roster
+				division="1"
+				expanded={false}
+				{rosterPositions}
+				{roster}
 				{leagueTeamManagers}
-				show="both"
-				query=""
-				page={0}
-				perPage={5}
+				{players}
+				{startersAndReserve}
 			/>
 
 		{/if}
 
-	</div>
+
+		<!-- TEAM TRANSACTIONS -->
+
+		<h3>
+			Team Transactions
+		</h3>
 
 
-	<!-- BOTTOM MANAGER NAVIGATION -->
+		<div class="managerConstrained">
 
-	<div class="managerNav">
+			{#if loading}
 
-		<Group variant="outlined">
+				<div class="loading">
 
-			{#if manager == 0}
+					<p>
+						Retrieving players...
+					</p>
 
-				<Button
-					disabled
-					class="selectionButtons"
-					onclick={() =>
-						changeManager(
-							parseInt(manager) - 1
-						)}
-					variant="outlined"
-				>
+					<LinearProgress indeterminate />
 
-					<Label>
-						Previous Manager
-					</Label>
-
-				</Button>
+				</div>
 
 			{:else}
 
-				<Button
-					class="selectionButtons"
-					onclick={() =>
-						changeManager(
-							parseInt(manager) - 1
-						)}
-					variant="outlined"
-				>
-
-					<Label>
-						Previous Manager
-					</Label>
-
-				</Button>
+				<TransactionsPage
+					{playersInfo}
+					transactions={teamTransactions}
+					{leagueTeamManagers}
+					show="both"
+					query=""
+					page={0}
+					perPage={5}
+				/>
 
 			{/if}
 
-
-			<Button
-				class="selectionButtons"
-				onclick={() => goto('/managers')}
-				variant="outlined"
-			>
-
-				<Label>
-					All Managers
-				</Label>
-
-			</Button>
+		</div>
 
 
-			{#if manager == managers.length - 1}
+		<!-- BOTTOM MANAGER NAVIGATION -->
+
+		<div class="managerNav">
+
+			<Group variant="outlined">
+
+				{#if manager == 0}
+
+					<Button
+						disabled
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) - 1
+							)}
+						variant="outlined"
+					>
+
+						<Label>
+							Previous Manager
+						</Label>
+
+					</Button>
+
+				{:else}
+
+					<Button
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) - 1
+							)}
+						variant="outlined"
+					>
+
+						<Label>
+							Previous Manager
+						</Label>
+
+					</Button>
+
+				{/if}
+
 
 				<Button
-					disabled
 					class="selectionButtons"
-					onclick={() =>
-						changeManager(
-							parseInt(manager) + 1
-						)}
+					onclick={() => goto('/managers')}
 					variant="outlined"
 				>
 
 					<Label>
-						Next Manager
+						All Managers
 					</Label>
 
 				</Button>
 
-			{:else}
 
-				<Button
-					class="selectionButtons"
-					onclick={() =>
-						changeManager(
-							parseInt(manager) + 1
-						)}
-					variant="outlined"
-				>
+				{#if manager == managers.length - 1}
 
-					<Label>
-						Next Manager
-					</Label>
+					<Button
+						disabled
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) + 1
+							)}
+						variant="outlined"
+					>
 
-				</Button>
+						<Label>
+							Next Manager
+						</Label>
 
-			{/if}
+					</Button>
 
-		</Group>
+				{:else}
+
+					<Button
+						class="selectionButtons"
+						onclick={() =>
+							changeManager(
+								parseInt(manager) + 1
+							)}
+						variant="outlined"
+					>
+
+						<Label>
+							Next Manager
+						</Label>
+
+					</Button>
+
+				{/if}
+
+			</Group>
+
+		</div>
 
 	</div>
 
