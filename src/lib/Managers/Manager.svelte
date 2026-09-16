@@ -3,8 +3,7 @@
 	import LinearProgress from '@smui/linear-progress';
 	import {
 		loadPlayers,
-		getLeagueTransactions,
-		getLeagueRecords
+		getLeagueTransactions
 	} from '$lib/utils/helper';
 	import Roster from '../Rosters/Roster.svelte';
 	import TransactionsPage from '../Transactions/TransactionsPage.svelte';
@@ -13,21 +12,15 @@
 	import ManagerAwards from './ManagerAwards.svelte';
 	import { onMount } from 'svelte';
 	import {
-		getDatesActive,
 		getRosterIDFromManagerID,
 		getTeamNameFromTeamManagers
 	} from '$lib/utils/helperFunctions/universalFunctions';
 
 	export let manager, managers, rostersData, leagueTeamManagers, rosterPositions, transactionsData, awards, records;
 
-	let transactions = transactionsData.transactions;
-
 	$: viewManager = managers[manager];
 
-	$: datesActive = getDatesActive(
-		leagueTeamManagers,
-		viewManager.managerID
-	);
+	let transactions = transactionsData.transactions;
 
 	const startersAndReserve = rostersData.startersAndReserve;
 
@@ -52,7 +45,7 @@
 	$: coOwners =
 		year && rosterID
 			? leagueTeamManagers.teamManagersMap[year][rosterID].managers.length > 1
-			: roster.co_owners;
+			: roster?.co_owners;
 
 	$: commissioner = viewManager.managerID
 		? leagueTeamManagers.users[viewManager.managerID].is_owner
@@ -60,22 +53,75 @@
 
 
 	/* =========================
+	   MANUAL SEASON RECORDS
+	   ========================= */
+
+	/*
+	 * Season records are manually entered in leagueInfo.js.
+	 *
+	 * Example:
+	 *
+	 * seasonRecords: [
+	 *     {
+	 *         year: 2023,
+	 *         record: '6-8',
+	 *         finish: '1st',
+	 *         champion: true
+	 *     }
+	 * ]
+	 */
+
+	$: seasonRecords = viewManager?.seasonRecords || [];
+
+	$: allTimeRecord = seasonRecords.reduce(
+		(total, season) => {
+			if (!season?.record) return total;
+
+			const match = String(season.record).match(
+				/^(\d+)\s*-\s*(\d+)(?:\s*-\s*(\d+))?$/
+			);
+
+			if (!match) return total;
+
+			total.wins += Number(match[1]);
+			total.losses += Number(match[2]);
+			total.ties += Number(match[3] || 0);
+
+			return total;
+		},
+		{
+			wins: 0,
+			losses: 0,
+			ties: 0
+		}
+	);
+
+	$: hasTies = seasonRecords.some(season => {
+		const match = String(season?.record || '').match(
+			/^(\d+)\s*-\s*(\d+)(?:\s*-\s*(\d+))?$/
+		);
+
+		return match && Number(match[3] || 0) > 0;
+	});
+
+
+	/* =========================
 	   BIG BOWL CHAMPIONSHIPS
 	   ========================= */
 
-	function getChampionshipCount(rosterID) {
-		if (!awards || !rosterID) return 0;
-
-		return awards.filter(
-			award =>
-				String(award.champion) === String(rosterID)
+	function getChampionshipCount() {
+		return seasonRecords.filter(
+			season => season?.champion === true
 		).length;
 	}
 
 
+	/* =========================
+	   TRANSACTIONS / PLAYERS
+	   ========================= */
+
 	let players, playersInfo;
 	let loading = true;
-
 
 	const refreshTransactions = async () => {
 		const newTransactions =
@@ -85,58 +131,10 @@
 	};
 
 
-	/* =========================
-	   AUTOMATIC ALL-TIME RECORD
-	   ========================= */
-
-	let currentRecords = records;
-
-	$: managerRecord =
-		currentRecords?.leagueManagerRecords?.[
-			viewManager?.managerID
-		];
-
-
-	let refreshingRecords = false;
-
-
-	async function refreshManagerRecords() {
-
-		if (refreshingRecords) return;
-
-		refreshingRecords = true;
-
-		try {
-
-			const freshRecords =
-				await getLeagueRecords(true);
-
-			if (freshRecords) {
-				currentRecords = freshRecords;
-			}
-
-		} catch (error) {
-
-			console.error(
-				'Unable to refresh league records:',
-				error
-			);
-
-		} finally {
-
-			refreshingRecords = false;
-
-		}
-
-	}
-
-
 	onMount(async () => {
-
 		if (transactionsData.stale) {
 			refreshTransactions();
 		}
-
 
 		const playerData = await loadPlayers(null);
 
@@ -146,9 +144,7 @@
 
 		loading = false;
 
-
 		if (playerData.stale) {
-
 			const newPlayerData =
 				await loadPlayers(null, true);
 
@@ -156,27 +152,20 @@
 
 			players = newPlayerData.players;
 		}
-
-
-		/*
-		 * Refresh the historical record data when
-		 * the cached records are marked stale.
-		 */
-
-		if (records?.stale) {
-			refreshManagerRecords();
-		}
-
 	});
 
+
+	/* =========================
+	   MANAGER NAVIGATION
+	   ========================= */
 
 	const changeManager = (
 		newManager,
 		noscroll = false
 	) => {
-
 		if (!newManager) {
 			goto('/managers');
+			return;
 		}
 
 		manager = newManager;
@@ -193,77 +182,56 @@
 
 	.managerContainer {
 		position: relative;
-
 		width: 100%;
-
 		margin: 2em 0 5em;
 	}
 
 
 	.managerConstrained {
 		width: 97%;
-
 		max-width: 800px;
-
 		margin: 0 auto 4em;
 	}
 
 
 	.managerPhoto {
 		display: block;
-
 		border-radius: 100%;
-
 		width: 70%;
-
 		max-width: 200px;
-
 		height: auto;
-
 		margin: 5em auto 1em;
-
 		box-shadow: 0 0 8px 4px #aaa;
 	}
 
 
 	h2 {
 		text-align: center;
-
 		font-size: 2.8em;
-
 		margin: 1em 0 0em;
-
 		line-height: 1em;
 	}
 
 
 	h3 {
 		text-align: center;
-
 		font-size: 1.5em;
-
 		margin: 1.5em 0 0.5em;
-
 		font-weight: 200;
 	}
 
 
 	.basicInfo {
 		display: flex;
-
 		justify-content: space-evenly;
-
 		align-items: center;
-
 		height: 24px;
-
 		margin: 2em 0;
 	}
 
 
 	.basicInfo span {
 		color: #888;
-
 		font-size: 0.9em;
 	}
 
@@ -275,9 +243,7 @@
 
 	.infoContact {
 		height: 20px;
-
 		vertical-align: middle;
-
 		padding-left: 1em;
 	}
 
@@ -291,104 +257,138 @@
 
 	.championshipInfo {
 		font-style: normal !important;
-
 		font-weight: 500;
-
 		white-space: nowrap;
 	}
 
 
 	.bio {
 		margin: 2em 1.5em 2em;
-
 		text-indent: 4em;
 	}
 
 
 	/* =========================
-	   AUTOMATIC ALL-TIME RECORD
+	   ALL-TIME RECORD
 	   ========================= */
 
 	.allTimeRecord {
 		display: flex;
-
 		justify-content: center;
-
 		align-items: center;
-
 		gap: 0.5em;
-
-		margin: 2em 0;
-
+		margin: 2em 0 2.5em;
 		font-size: 1.1em;
 	}
 
 
 	.recordLabel {
 		color: #888;
-
 		font-style: italic;
 	}
 
 
+	/* =========================
+	   SEASON HISTORY
+	   ========================= */
+
+	.seasonHistory {
+		width: 92%;
+		max-width: 650px;
+		margin: 2em auto 3em;
+	}
+
+
+	.seasonHistoryTitle {
+		margin-bottom: 1em;
+	}
+
+
+	.seasonTable {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: center;
+	}
+
+
+	.seasonTable th {
+		padding: 0.7em 0.4em;
+		font-weight: 600;
+		border-bottom: 1px solid rgba(128, 128, 128, 0.4);
+	}
+
+
+	.seasonTable td {
+		padding: 0.7em 0.4em;
+		border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+	}
+
+
+	.seasonTable tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+
+	.seasonTable .championRow {
+		background-color: rgba(76, 175, 80, 0.22);
+		font-weight: 500;
+	}
+
+
+	.championBadge {
+		white-space: nowrap;
+	}
+
+
+	/* Existing philosophy styles */
+
 	.philosophy {
 		margin: 2em 1.5em 2em;
-
 		text-indent: 4em;
 	}
 
 
 	.philosophy23 {
 		margin: 2em 1.5em 2em;
-
 		text-indent: 4em;
 	}
 
 
 	.philosophy24 {
 		margin: 2em 1.5em 2em;
-
 		text-indent: 4em;
 	}
 
 
 	.philosophy25 {
 		margin: 2em 1.5em 2em;
-
 		text-indent: 4em;
 	}
 
 
 	.philosophy26 {
 		margin: 2em 1.5em 2em;
-
 		text-indent: 4em;
 	}
 
 
 	.loading {
 		display: block;
-
 		width: 85%;
-
 		max-width: 500px;
-
 		margin: 80px auto;
 	}
 
 
 	.teamSub {
 		font-size: 0.4em;
-
 		line-height: 1em;
-
 		color: #666;
 	}
 
 
 	.managerNav {
 		margin: 4em 0 2em;
-
 		text-align: center;
 	}
 
@@ -400,28 +400,19 @@
 
 	.commissionerBadge {
 		display: flex;
-
 		justify-content: center;
-
 		align-items: center;
-
 		height: 25px;
-
 		width: 25px;
-
 		font-weight: 600;
-
 		border-radius: 15px;
-
 		background-color: var(--blueTwo);
-
 		border: 1px solid var(--blueOne);
 	}
 
 
 	.commissionerBadge span {
 		font-style: normal;
-
 		color: #fff;
 	}
 
@@ -429,7 +420,6 @@
 	/* media queries */
 
 	@media (max-width: 505px) {
-
 		:global(.selectionButtons span) {
 			font-size: 0.8em;
 		}
@@ -437,62 +427,55 @@
 
 
 	@media (max-width: 435px) {
-
 		:global(.selectionButtons span) {
 			line-height: 1.2em;
-
 			font-size: 0.8em;
 		}
 	}
 
 
 	@media (max-width: 450px) {
-
 		.basicInfo {
-
 			height: 20px;
-
 		}
-
 
 		.basicInfo span {
-
 			font-size: 0.75em;
-
 		}
-
 
 		.infoTeam {
-
 			height: 30px;
-
 		}
 
+		.seasonHistory {
+			width: 96%;
+		}
+
+		.seasonTable th,
+		.seasonTable td {
+			padding: 0.6em 0.2em;
+			font-size: 0.9em;
+		}
 	}
 
 
 	@media (max-width: 370px) {
-
 		.basicInfo {
-
 			height: 18px;
-
 		}
-
 
 		.basicInfo span {
-
 			font-size: 0.6em;
-
 		}
-
 
 		.infoTeam {
-
 			height: 24px;
-
 		}
 
+		.seasonTable th,
+		.seasonTable td {
+			font-size: 0.8em;
+		}
 	}
 
 </style>
@@ -504,7 +487,7 @@
 
 		<img
 			class="managerPhoto"
-			src="{viewManager.photo}"
+			src={viewManager.photo}
 			alt="manager"
 		/>
 
@@ -542,74 +525,18 @@
 			</span>
 
 
-			<!-- LEAGUE HISTORY -->
-
-			{#if viewManager.managerID && datesActive.start}
-
-				<span class="seperator">|</span>
-
-				{#if datesActive.end}
-
-					<span class="infoChild">
-
-						In the league from
-						'{datesActive.start
-							.toString()
-							.substr(2)}
-
-						to
-						'{datesActive.end
-							.toString()
-							.substr(2)}
-
-					</span>
-
-				{:else}
-
-					<span class="infoChild">
-
-						In the league since
-						'{datesActive.start
-							.toString()
-							.substr(2)}
-
-					</span>
-
-				{/if}
-
-
-			{:else if viewManager.fantasyStart}
-
-				<span class="seperator">|</span>
-
-				<span class="infoChild">
-
-					Playing ff since
-					'{viewManager.fantasyStart
-						.toString()
-						.substr(2)}
-
-				</span>
-
-			{/if}
-
-
-			<!-- =========================
-			     BIG BOWL CHAMPIONSHIPS
-			     ========================= -->
+			<!-- CHAMPIONSHIPS -->
 
 			<span class="seperator">|</span>
 
 			<span class="infoChild championshipInfo">
 
-				🏆 {getChampionshipCount(rosterID)}× Champion
+				🏆 {getChampionshipCount()}× Champion
 
 			</span>
 
 
-			<!-- =========================
-			     FAVORITE NFL TEAM
-			     ========================= -->
+			<!-- FAVORITE NFL TEAM -->
 
 			{#if viewManager.favoriteTeam}
 
@@ -756,26 +683,98 @@
 
 
 		<!-- =========================
-		     AUTOMATIC ALL-TIME RECORD
+		     ALL-TIME RECORD
 		     ========================= -->
 
-		{#if managerRecord}
+		<div class="allTimeRecord">
 
-			<div class="allTimeRecord">
+			<span class="recordLabel">
+				All-Time Record
+			</span>
 
-				<span class="recordLabel">
-					All-Time Record
-				</span>
+			<strong>
 
-				<strong>
+				{allTimeRecord.wins}
+				-
+				{allTimeRecord.losses}
 
-					{managerRecord.wins}
+				{#if hasTies}
 					-
-					{managerRecord.losses}
-					-
-					{managerRecord.ties}
+					{allTimeRecord.ties}
+				{/if}
 
-				</strong>
+			</strong>
+
+		</div>
+
+
+		<!-- =========================
+		     SEASON-BY-SEASON RECORD
+		     ========================= -->
+
+		{#if seasonRecords.length > 0}
+
+			<div class="seasonHistory">
+
+				<h3 class="seasonHistoryTitle">
+					Season-by-Season Record
+				</h3>
+
+
+				<table class="seasonTable">
+
+					<thead>
+
+						<tr>
+							<th>Season</th>
+							<th>Record</th>
+							<th>Finish</th>
+						</tr>
+
+					</thead>
+
+
+					<tbody>
+
+						{#each seasonRecords as season}
+
+							<tr
+								class:championRow={
+									season.champion === true
+								}
+							>
+
+								<td>
+									{season.year}
+								</td>
+
+								<td>
+									{season.record}
+								</td>
+
+								<td>
+
+									{#if season.champion}
+
+										<span class="championBadge">
+											🏆 {season.finish}
+										</span>
+
+									{:else}
+
+										{season.finish}
+
+									{/if}
+
+								</td>
+
+							</tr>
+
+						{/each}
+
+					</tbody>
+
+				</table>
 
 			</div>
 
