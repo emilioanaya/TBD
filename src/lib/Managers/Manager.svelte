@@ -1,7 +1,11 @@
 <script>
 	import Button, { Group, Label } from '@smui/button';
 	import LinearProgress from '@smui/linear-progress';
-	import { loadPlayers, getLeagueTransactions } from '$lib/utils/helper';
+	import {
+		loadPlayers,
+		getLeagueTransactions,
+		getLeagueRecords
+	} from '$lib/utils/helper';
 	import Roster from '../Rosters/Roster.svelte';
 	import TransactionsPage from '../Transactions/TransactionsPage.svelte';
 	import { goto } from '$app/navigation';
@@ -13,9 +17,15 @@
 		getRosterIDFromManagerID,
 		getTeamNameFromTeamManagers
 	} from '$lib/utils/helperFunctions/universalFunctions';
-	import { getLeagueRecords, leagueName } from '$lib/utils/helper';
 
-	export let manager, managers, rostersData, leagueTeamManagers, rosterPositions, transactionsData, awards, records;
+	export let manager,
+		managers,
+		rostersData,
+		leagueTeamManagers,
+		rosterPositions,
+		transactionsData,
+		awards,
+		records;
 
 	let transactions = transactionsData.transactions;
 
@@ -26,7 +36,8 @@
 		viewManager.managerID
 	);
 
-	const startersAndReserve = rostersData.startersAndReserve;
+	const startersAndReserve =
+		rostersData.startersAndReserve;
 
 	let rosters = rostersData.rosters;
 
@@ -48,11 +59,15 @@
 
 	$: coOwners =
 		year && rosterID
-			? leagueTeamManagers.teamManagersMap[year][rosterID].managers.length > 1
+			? leagueTeamManagers.teamManagersMap[year][
+					rosterID
+				].managers.length > 1
 			: roster.co_owners;
 
 	$: commissioner = viewManager.managerID
-		? leagueTeamManagers.users[viewManager.managerID].is_owner
+		? leagueTeamManagers.users[
+				viewManager.managerID
+			].is_owner
 		: false;
 
 
@@ -88,7 +103,8 @@
 			refreshTransactions();
 		}
 
-		const playerData = await loadPlayers(null);
+		const playerData =
+			await loadPlayers(null);
 
 		playersInfo = playerData;
 
@@ -106,47 +122,50 @@
 
 			players = newPlayerData.players;
 		}
+
 	});
 
 
 	/* =========================
-	   ALL-TIME + SEASON RECORDS
+	   ALL-TIME RECORD
 	   ========================= */
 
 	let currentRecords = records;
 
 
 	/*
-	 * Automatically get this manager's
-	 * all-time regular-season record.
-	 *
-	 * This comes from the historical Sleeper
-	 * record data instead of leagueInfo.js.
+	 * The league records system already calculates
+	 * the manager's complete record across every
+	 * TBD season.
 	 */
 
 	$: managerRecord =
-		currentRecords?.regularSeasonData?.leagueManagerRecords?.[
+		currentRecords?.leagueManagerRecords?.[
 			viewManager?.managerID
 		];
 
 
-	/*
-	 * Automatically build this manager's
-	 * season-by-season records.
-	 */
+	/* =========================
+	   SEASON-BY-SEASON RECORD
+	   ========================= */
 
-	$: seasonRecords = getManagerSeasonRecords(
-		viewManager?.managerID,
-		currentRecords,
-		leagueTeamManagers
-	);
+	$: seasonRecords =
+		getManagerSeasonRecords(
+			viewManager?.managerID,
+			currentRecords,
+			leagueTeamManagers
+		);
 
 
-	function getManagerSeasonRecords(managerID, recordsData, teamManagers) {
+	function getManagerSeasonRecords(
+		managerID,
+		recordsData,
+		teamManagers
+	) {
 
 		if (
 			!managerID ||
-			!recordsData?.regularSeasonData ||
+			!recordsData?.leagueRosterRecords ||
 			!teamManagers?.teamManagersMap
 		) {
 			return [];
@@ -154,11 +173,19 @@
 
 
 		const rosterRecords =
-			recordsData.regularSeasonData.leagueRosterRecords || {};
+			recordsData.leagueRosterRecords;
 
 
 		const seasons = [];
 
+
+		/*
+		 * Each roster can have a different manager
+		 * in different seasons, so we go through
+		 * every historical roster and determine
+		 * whether this manager was on that roster
+		 * during that particular season.
+		 */
 
 		for (const rosterID in rosterRecords) {
 
@@ -168,16 +195,26 @@
 
 			for (const season of years) {
 
+				const seasonYear =
+					Number(season.year);
+
+
 				const yearManagers =
-					teamManagers.teamManagersMap[season.year];
+					teamManagers.teamManagersMap[
+						seasonYear
+					];
 
 
-				const rosterManagers =
-					yearManagers?.[rosterID]?.managers || [];
+				const rosterData =
+					yearManagers?.[rosterID];
+
+
+				const managersForSeason =
+					rosterData?.managers || [];
 
 
 				if (
-					!rosterManagers
+					!managersForSeason
 						.map(String)
 						.includes(String(managerID))
 				) {
@@ -186,21 +223,19 @@
 
 
 				seasons.push({
-
 					...season,
-
-					league: leagueName,
-
-					team:
-						yearManagers?.[rosterID]?.team?.name ||
-						'TBD'
-
+					rosterID: String(rosterID),
+					year: seasonYear
 				});
 
 			}
 
 		}
 
+
+		/*
+		 * Most recent season first.
+		 */
 
 		return seasons.sort(
 			(a, b) => b.year - a.year
@@ -209,17 +244,15 @@
 	}
 
 
-	/*
-	 * Calculate the manager's finish for a
-	 * particular season using the same
-	 * tiebreaker order as TBD standings.
-	 */
+	/* =========================
+	   SEASON FINISH
+	   ========================= */
 
 	function getSeasonFinish(season) {
 
 		if (
 			!season?.year ||
-			!currentRecords?.regularSeasonData
+			!currentRecords?.leagueRosterRecords
 		) {
 			return null;
 		}
@@ -229,15 +262,20 @@
 
 
 		const rosterRecords =
-			currentRecords
-				.regularSeasonData
-				.leagueRosterRecords || {};
+			currentRecords.leagueRosterRecords;
 
+
+		/*
+		 * Collect every roster's record
+		 * for this particular season.
+		 */
 
 		for (const rosterID in rosterRecords) {
 
 			const record =
-				rosterRecords[rosterID]?.years?.find(
+				rosterRecords[
+					rosterID
+				]?.years?.find(
 					y =>
 						Number(y.year) ===
 						Number(season.year)
@@ -245,14 +283,19 @@
 
 
 			if (record) {
-				allRosters.push(record);
+
+				allRosters.push({
+					...record,
+					rosterID: String(rosterID)
+				});
+
 			}
 
 		}
 
 
 		/*
-		 * TBD standings tiebreakers:
+		 * TBD standings tiebreaker order:
 		 *
 		 * 1. Wins
 		 * 2. Ties
@@ -262,19 +305,43 @@
 
 		allRosters.sort((a, b) => {
 
-			if (b.wins !== a.wins) {
-				return b.wins - a.wins;
+			if (
+				Number(b.wins) !==
+				Number(a.wins)
+			) {
+				return (
+					Number(b.wins) -
+					Number(a.wins)
+				);
 			}
 
-			if (b.ties !== a.ties) {
-				return b.ties - a.ties;
+
+			if (
+				Number(b.ties) !==
+				Number(a.ties)
+			) {
+				return (
+					Number(b.ties) -
+					Number(a.ties)
+				);
 			}
 
-			if (b.fpts !== a.fpts) {
-				return b.fpts - a.fpts;
+
+			if (
+				Number(b.fpts) !==
+				Number(a.fpts)
+			) {
+				return (
+					Number(b.fpts) -
+					Number(a.fpts)
+				);
 			}
 
-			return b.fptsAgainst - a.fptsAgainst;
+
+			return (
+				Number(b.fptsAgainst) -
+				Number(a.fptsAgainst)
+			);
 
 		});
 
@@ -283,9 +350,7 @@
 			allRosters.findIndex(
 				r =>
 					String(r.rosterID) ===
-						String(season.rosterID) &&
-					Number(r.year) ===
-						Number(season.year)
+						String(season.rosterID)
 			);
 
 
@@ -296,22 +361,72 @@
 	}
 
 
+	function getFinishSuffix(place) {
+
+		if (place === 1) return 'st';
+
+		if (place === 2) return 'nd';
+
+		if (place === 3) return 'rd';
+
+		return 'th';
+
+	}
+
+
+	/* =========================
+	   REFRESH RECORD DATA
+	   ========================= */
+
 	/*
-	 * If the cached record data is stale,
-	 * automatically refresh it from Sleeper.
+	 * If the records returned by the page are
+	 * marked stale, request fresh records.
 	 */
 
 	$: if (records?.stale) {
 
-		getLeagueRecords(true)
-			.then((newRecords) => {
-
-				currentRecords = newRecords;
-
-			});
+		refreshRecords();
 
 	}
 
+
+	let refreshingRecords = false;
+
+
+	async function refreshRecords() {
+
+		if (refreshingRecords) return;
+
+		refreshingRecords = true;
+
+		try {
+
+			const freshRecords =
+				await getLeagueRecords(true);
+
+			if (freshRecords) {
+				currentRecords = freshRecords;
+			}
+
+		} catch (error) {
+
+			console.error(
+				'Unable to refresh league records:',
+				error
+			);
+
+		} finally {
+
+			refreshingRecords = false;
+
+		}
+
+	}
+
+
+	/* =========================
+	   MANAGER NAVIGATION
+	   ========================= */
 
 	const changeManager = (
 		newManager,
@@ -320,6 +435,7 @@
 
 		if (!newManager) {
 			goto('/managers');
+			return;
 		}
 
 		manager = newManager;
@@ -450,41 +566,6 @@
 	}
 
 
-	.philosophy {
-		margin: 2em 1.5em 2em;
-
-		text-indent: 4em;
-	}
-
-
-	.philosophy23 {
-		margin: 2em 1.5em 2em;
-
-		text-indent: 4em;
-	}
-
-
-	.philosophy24 {
-		margin: 2em 1.5em 2em;
-
-		text-indent: 4em;
-	}
-
-
-	.philosophy25 {
-		margin: 2em 1.5em 2em;
-
-		text-indent: 4em;
-	}
-
-
-	.philosophy26 {
-		margin: 2em 1.5em 2em;
-
-		text-indent: 4em;
-	}
-
-
 	/* =========================
 	   ALL-TIME RECORD
 	   ========================= */
@@ -528,7 +609,6 @@
 
 		grid-template-columns:
 			1fr
-			1.5fr
 			1fr
 			1fr;
 
@@ -629,61 +709,45 @@
 	@media (max-width: 435px) {
 
 		:global(.selectionButtons span) {
-
 			line-height: 1.2em;
 
 			font-size: 0.8em;
-
 		}
-
 	}
 
 
 	@media (max-width: 450px) {
 
 		.basicInfo {
-
 			height: 20px;
-
 		}
 
 
 		.basicInfo span {
-
 			font-size: 0.75em;
-
 		}
 
 
 		.infoTeam {
-
 			height: 30px;
-
 		}
-
 	}
 
 
 	@media (max-width: 370px) {
 
 		.basicInfo {
-
 			height: 18px;
-
 		}
 
 
 		.basicInfo span {
-
 			font-size: 0.6em;
-
 		}
 
 
 		.infoTeam {
-
 			height: 24px;
-
 		}
 
 	}
@@ -788,9 +852,7 @@
 			{/if}
 
 
-			<!-- =========================
-			     BIG BOWL CHAMPIONSHIPS
-			     ========================= -->
+			<!-- BIG BOWL CHAMPIONSHIPS -->
 
 			<span class="seperator">|</span>
 
@@ -801,9 +863,7 @@
 			</span>
 
 
-			<!-- =========================
-			     FAVORITE NFL TEAM
-			     ========================= -->
+			<!-- FAVORITE NFL TEAM -->
 
 			{#if viewManager.favoriteTeam}
 
@@ -963,7 +1023,11 @@
 
 				<strong>
 
-					{managerRecord.wins}-{managerRecord.losses}-{managerRecord.ties}
+					{managerRecord.wins}
+					-
+					{managerRecord.losses}
+					-
+					{managerRecord.ties}
 
 				</strong>
 
@@ -987,13 +1051,17 @@
 
 				<div class="seasonHeader">
 
-					<span>Season</span>
+					<span>
+						Season
+					</span>
 
-					<span>League</span>
+					<span>
+						Record
+					</span>
 
-					<span>Record</span>
-
-					<span>Finish</span>
+					<span>
+						Finish
+					</span>
 
 				</div>
 
@@ -1007,11 +1075,13 @@
 						</span>
 
 						<span>
-							{season.league}
-						</span>
 
-						<span>
-							{season.wins}-{season.losses}-{season.ties}
+							{season.wins}
+							-
+							{season.losses}
+							-
+							{season.ties}
+
 						</span>
 
 						<span>
@@ -1019,14 +1089,9 @@
 							{#if getSeasonFinish(season)}
 
 								{getSeasonFinish(season)}
-
-								{getSeasonFinish(season) === 1
-									? 'st'
-									: getSeasonFinish(season) === 2
-										? 'nd'
-										: getSeasonFinish(season) === 3
-											? 'rd'
-											: 'th'}
+								{getFinishSuffix(
+									getSeasonFinish(season)
+								)}
 
 							{:else}
 
