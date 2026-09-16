@@ -19,9 +19,9 @@
 
 	export let manager, managers, rostersData, leagueTeamManagers, rosterPositions, transactionsData, awards, records;
 
-	$: viewManager = managers[manager];
-
 	let transactions = transactionsData.transactions;
+
+	$: viewManager = managers[manager];
 
 	const startersAndReserve = rostersData.startersAndReserve;
 
@@ -46,18 +46,11 @@
 	$: coOwners =
 		year && rosterID
 			? leagueTeamManagers.teamManagersMap[year][rosterID].managers.length > 1
-			: roster?.co_owners;
+			: roster.co_owners;
 
 	$: commissioner = viewManager.managerID
 		? leagueTeamManagers.users[viewManager.managerID].is_owner
 		: false;
-
-
-	/* =========================
-	   MANUAL SEASON HISTORY
-	   ========================= */
-
-	$: seasonRecords = viewManager?.seasonRecords || [];
 
 
 	/* =========================
@@ -72,6 +65,13 @@
 				String(award.champion) === String(rosterID)
 		).length;
 	}
+
+
+	/* =========================
+	   SEASON HISTORY
+	   ========================= */
+
+	$: seasonRecords = viewManager?.seasonRecords || [];
 
 
 	let players, playersInfo;
@@ -102,13 +102,11 @@
 
 
 	async function refreshManagerRecords() {
-
 		if (refreshingRecords) return;
 
 		refreshingRecords = true;
 
 		try {
-
 			const freshRecords =
 				await getLeagueRecords(true);
 
@@ -117,23 +115,18 @@
 			}
 
 		} catch (error) {
-
 			console.error(
 				'Unable to refresh league records:',
 				error
 			);
 
 		} finally {
-
 			refreshingRecords = false;
-
 		}
-
 	}
 
 
 	onMount(async () => {
-
 		if (transactionsData.stale) {
 			refreshTransactions();
 		}
@@ -142,21 +135,16 @@
 		const playerData = await loadPlayers(null);
 
 		playersInfo = playerData;
-
 		players = playerData.players;
-
 		loading = false;
 
 
 		if (playerData.stale) {
-
 			const newPlayerData =
 				await loadPlayers(null, true);
 
 			playersInfo = newPlayerData;
-
 			players = newPlayerData.players;
-
 		}
 
 
@@ -168,7 +156,6 @@
 		if (records?.stale) {
 			refreshManagerRecords();
 		}
-
 	});
 
 
@@ -176,10 +163,8 @@
 		newManager,
 		noscroll = false
 	) => {
-
 		if (!newManager) {
 			goto('/managers');
-			return;
 		}
 
 		manager = newManager;
@@ -196,56 +181,77 @@
 
 	.managerContainer {
 		position: relative;
+
 		width: 100%;
+
 		margin: 2em 0 5em;
 	}
 
 
 	.managerConstrained {
 		width: 97%;
+
 		max-width: 800px;
+
 		margin: 0 auto 4em;
 	}
 
 
 	.managerPhoto {
 		display: block;
+
 		border-radius: 100%;
+
 		width: 70%;
+
 		max-width: 200px;
+
 		height: auto;
+
 		margin: 5em auto 1em;
+
 		box-shadow: 0 0 8px 4px #aaa;
 	}
 
 
 	h2 {
 		text-align: center;
+
 		font-size: 2.8em;
+
 		margin: 1em 0 0em;
+
 		line-height: 1em;
 	}
 
 
 	h3 {
 		text-align: center;
+
 		font-size: 1.5em;
+
 		margin: 1.5em 0 0.5em;
+
 		font-weight: 200;
 	}
 
 
 	.basicInfo {
 		display: flex;
+
 		justify-content: space-evenly;
+
 		align-items: center;
+
 		height: 24px;
+
 		margin: 2em 0;
 	}
 
 
 	.basicInfo span {
 		color: #888;
+
 		font-size: 0.9em;
 	}
 
@@ -257,7 +263,9 @@
 
 	.infoContact {
 		height: 20px;
+
 		vertical-align: middle;
+
 		padding-left: 1em;
 	}
 
@@ -267,43 +275,46 @@
 	}
 
 
-	/* =========================
-	   CHAMPIONSHIP COUNT
-	   ========================= */
+	/* Big Bowl championship count */
 
 	.championshipInfo {
 		font-style: normal !important;
+
 		font-weight: 500;
+
 		white-space: nowrap;
 	}
 
 
-	/* =========================
-	   BIO
-	   ========================= */
-
 	.bio {
 		margin: 2em 1.5em 2em;
+
 		text-indent: 4em;
 	}
 
 
 	/* =========================
-	   ALL-TIME RECORD
+	   AUTOMATIC ALL-TIME RECORD
 	   ========================= */
 
 	.allTimeRecord {
 		display: flex;
+
 		justify-content: center;
+
 		align-items: center;
+
 		gap: 0.5em;
-		margin: 2em 0 2.5em;
+
+		margin: 2em 0;
+
 		font-size: 1.1em;
 	}
 
 
 	.recordLabel {
 		color: #888;
+
 		font-style: italic;
 	}
 
@@ -313,9 +324,11 @@
 	   ========================= */
 
 	.seasonHistory {
-		width: 92%;
+		width: 95%;
+
 		max-width: 650px;
-		margin: 2em auto 3em;
+
+		margin: 3em auto;
 	}
 
 
@@ -326,93 +339,88 @@
 
 	.seasonTable {
 		width: 100%;
+
 		border-collapse: collapse;
+
 		text-align: center;
+
+		font-size: 1em;
 	}
 
 
 	.seasonTable th {
-		padding: 0.7em 0.5em;
+		padding: 0.75em 0.5em;
+
 		font-weight: 600;
-		border-bottom: 1px solid rgba(128, 128, 128, 0.4);
+
+		border-bottom: 2px solid #aaa;
 	}
 
 
 	.seasonTable td {
 		padding: 0.75em 0.5em;
-		border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+
+		border-bottom: 1px solid rgba(128, 128, 128, 0.35);
 	}
 
 
-	.seasonTable tbody tr:last-child td {
-		border-bottom: none;
+	/* Gold — 1st place */
+
+	.seasonTable .goldRow {
+		background-color: rgba(255, 215, 0, 0.22);
+
+		font-weight: 600;
 	}
 
 
-	/* Champion season gets subtle green highlight */
+	/* Silver — 2nd place */
 
-	.seasonTable .championRow {
-		background-color: rgba(76, 175, 80, 0.22);
-		font-weight: 500;
+	.seasonTable .silverRow {
+		background-color: rgba(192, 192, 192, 0.22);
+
+		font-weight: 600;
 	}
 
 
-	.championBadge {
-		white-space: nowrap;
+	/* Bronze — 3rd place */
+
+	.seasonTable .bronzeRow {
+		background-color: rgba(205, 127, 50, 0.22);
+
+		font-weight: 600;
 	}
 
-
-	/* =========================
-	   TEAM HISTORY
-	   ========================= */
 
 	.philosophy {
 		margin: 2em 1.5em 2em;
-		text-indent: 4em;
-	}
 
-
-	.philosophy23 {
-		margin: 2em 1.5em 2em;
-		text-indent: 4em;
-	}
-
-
-	.philosophy24 {
-		margin: 2em 1.5em 2em;
-		text-indent: 4em;
-	}
-
-
-	.philosophy25 {
-		margin: 2em 1.5em 2em;
-		text-indent: 4em;
-	}
-
-
-	.philosophy26 {
-		margin: 2em 1.5em 2em;
 		text-indent: 4em;
 	}
 
 
 	.loading {
 		display: block;
+
 		width: 85%;
+
 		max-width: 500px;
+
 		margin: 80px auto;
 	}
 
 
 	.teamSub {
 		font-size: 0.4em;
+
 		line-height: 1em;
+
 		color: #666;
 	}
 
 
 	.managerNav {
 		margin: 4em 0 2em;
+
 		text-align: center;
 	}
 
@@ -424,33 +432,39 @@
 
 	.commissionerBadge {
 		display: flex;
+
 		justify-content: center;
+
 		align-items: center;
+
 		height: 25px;
+
 		width: 25px;
+
 		font-weight: 600;
+
 		border-radius: 15px;
+
 		background-color: var(--blueTwo);
+
 		border: 1px solid var(--blueOne);
 	}
 
 
 	.commissionerBadge span {
 		font-style: normal;
+
 		color: #fff;
 	}
 
 
-	/* =========================
-	   MEDIA QUERIES
-	   ========================= */
+	/* media queries */
 
 	@media (max-width: 505px) {
 
 		:global(.selectionButtons span) {
 			font-size: 0.8em;
 		}
-
 	}
 
 
@@ -458,9 +472,9 @@
 
 		:global(.selectionButtons span) {
 			line-height: 1.2em;
+
 			font-size: 0.8em;
 		}
-
 	}
 
 
@@ -479,19 +493,6 @@
 		.infoTeam {
 			height: 30px;
 		}
-
-
-		.seasonHistory {
-			width: 96%;
-		}
-
-
-		.seasonTable th,
-		.seasonTable td {
-			padding: 0.6em 0.25em;
-			font-size: 0.9em;
-		}
-
 	}
 
 
@@ -510,13 +511,6 @@
 		.infoTeam {
 			height: 24px;
 		}
-
-
-		.seasonTable th,
-		.seasonTable td {
-			font-size: 0.8em;
-		}
-
 	}
 
 </style>
@@ -528,7 +522,7 @@
 
 		<img
 			class="managerPhoto"
-			src={viewManager.photo}
+			src="{viewManager.photo}"
 			alt="manager"
 		/>
 
@@ -559,14 +553,12 @@
 			<!-- LOCATION -->
 
 			<span class="infoChild">
-
 				{viewManager.location ||
 					'Undisclosed Location'}
-
 			</span>
 
 
-			<!-- CHAMPIONSHIPS -->
+			<!-- BIG BOWL CHAMPIONSHIPS -->
 
 			<span class="seperator">|</span>
 
@@ -717,14 +709,12 @@
 		<!-- BIO -->
 
 		<p class="bio">
-
 			{@html viewManager.bio}
-
 		</p>
 
 
 		<!-- =========================
-		     ALL-TIME RECORD
+		     AUTOMATIC ALL-TIME RECORD
 		     ========================= -->
 
 		{#if managerRecord}
@@ -736,13 +726,11 @@
 				</span>
 
 				<strong>
-
 					{managerRecord.wins}
 					-
 					{managerRecord.losses}
 					-
 					{managerRecord.ties}
-
 				</strong>
 
 			</div>
@@ -768,19 +756,9 @@
 					<thead>
 
 						<tr>
-
-							<th>
-								Season
-							</th>
-
-							<th>
-								Record
-							</th>
-
-							<th>
-								Finish
-							</th>
-
+							<th>Season</th>
+							<th>Record</th>
+							<th>Finish</th>
 						</tr>
 
 					</thead>
@@ -791,33 +769,29 @@
 						{#each seasonRecords as season}
 
 							<tr
-								class:championRow={
-									season.champion === true
-								}
+								class:goldRow={season.finish === '1st'}
+								class:silverRow={season.finish === '2nd'}
+								class:bronzeRow={season.finish === '3rd'}
 							>
 
 								<td>
 									{season.year}
 								</td>
 
-
 								<td>
 									{season.record}
 								</td>
 
-
 								<td>
 
-									{#if season.champion}
-
-										<span class="championBadge">
-											🏆 {season.finish}
-										</span>
-
+									{#if season.finish === '1st'}
+										🥇 {season.finish}
+									{:else if season.finish === '2nd'}
+										🥈 {season.finish}
+									{:else if season.finish === '3rd'}
+										🥉 {season.finish}
 									{:else}
-
 										{season.finish}
-
 									{/if}
 
 								</td>
@@ -835,9 +809,7 @@
 		{/if}
 
 
-		<!-- =========================
-		     TEAM HISTORY
-		     ========================= -->
+		<!-- TEAM HISTORY -->
 
 		{#if viewManager.philosophy}
 
@@ -845,24 +817,9 @@
 				Team History
 			</h3>
 
+
 			<p class="philosophy">
 				{@html viewManager.philosophy}
-			</p>
-
-			<p class="philosophy23">
-				{@html viewManager.philosophy23}
-			</p>
-
-			<p class="philosophy24">
-				{@html viewManager.philosophy24}
-			</p>
-
-			<p class="philosophy25">
-				{@html viewManager.philosophy25}
-			</p>
-
-			<p class="philosophy26">
-				{@html viewManager.philosophy26}
 			</p>
 
 		{/if}
